@@ -23,9 +23,6 @@ export default function Home() {
             <span className="text-xl font-semibold text-gray-900">LaunchOnce</span>
           </div>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
-            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Docs</a>
             <Button variant="outline" size="sm" className="text-sm">Sign in</Button>
             <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-sm">
               Get started
