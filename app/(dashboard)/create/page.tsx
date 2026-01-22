@@ -26,7 +26,7 @@ const documentSchema = z.object({
   subtitle: z.string().max(300, "Subtitle must be less than 300 characters").optional().or(z.literal("")),
   description: z.string().max(500, "Description must be less than 500 characters").optional().or(z.literal("")),
   content: z.string().min(1, "Content is required"),
-  coverImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  coverImage: z.url("Must be a valid URL").optional().or(z.literal("")),
   tags: z.string().optional(),
   visibility: z.enum(["draft", "published"]),
 });
