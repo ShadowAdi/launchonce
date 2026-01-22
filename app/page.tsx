@@ -49,12 +49,12 @@ export default function Home() {
             </div>
             
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-gray-900 mb-6">
-              Ship once,<br />reach everywhere
+              Share anything,<br />in any language
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Build your product page in one language. We handle the rest. 
-              No translation files, no code rewrites, no headaches.
+              Create a page for your hackathon project, product launch, portfolio, event, or announcement. 
+              Write once in your language—visitors see it in theirs.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -67,7 +67,7 @@ export default function Home() {
               </Button>
             </div>
 
-            <p className="text-sm text-gray-500 mt-6">No credit card required · 2 min setup</p>
+            <p className="text-sm text-gray-500 mt-6">No credit card required • Live in 2 minutes</p>
           </motion.div>
 
           {/* Hero Visual */}
@@ -83,11 +83,11 @@ export default function Home() {
                   <div className="inline-flex items-center gap-3 bg-white rounded-lg px-6 py-4 shadow-lg mb-6">
                     <Languages className="w-8 h-8 text-blue-600" />
                     <div className="text-left">
-                      <div className="text-sm font-medium text-gray-900">Available in</div>
-                      <div className="text-xs text-gray-500">English • Spanish • French • 50+ more</div>
+                      <div className="text-sm font-medium text-gray-900">Auto-translated to</div>
+                      <div className="text-xs text-gray-500">Spanish • French • German • Japanese • 50+ more</div>
                     </div>
                   </div>
-                  <p className="text-gray-600 text-sm">Interactive demo coming soon</p>
+                  <p className="text-gray-600 text-sm">Your content, their language</p>
                 </div>
               </div>
             </div>
@@ -135,17 +135,18 @@ export default function Home() {
             >
               <div className="text-sm font-medium text-blue-600 mb-4">THE PROBLEM</div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Localization shouldn't block your launch
+                Great work deserves a global audience
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                You've built something great. But launching globally means translation costs, 
-                developer time, and constant maintenance. So most teams just... don't.
+                You built a hackathon project, launched a side project, or created a portfolio. 
+                But sharing it with a global audience means translation costs, technical complexity, 
+                and ongoing maintenance. So most creators only reach English speakers.
               </p>
               <div className="space-y-3">
                 {[
-                  'Hiring translators costs thousands per language',
-                  'Managing translation files slows every release',
-                  'Keeping content in sync is a nightmare'
+                  'Translation services cost hundreds to thousands per language',
+                  'Building multi-language support requires technical expertise',
+                  'Every content update means re-translating everything'
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -168,13 +169,13 @@ export default function Home() {
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <div className="text-xs text-gray-500 mb-2">Traditional approach</div>
                     <div className="font-mono text-sm text-gray-700">
-                      ❌ Write content → Translate → Deploy → Repeat for each language
+                      Write content → Find translators → Pay per language → Deploy → Repeat forever
                     </div>
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="text-xs text-blue-600 mb-2">LaunchOnce</div>
+                    <div className="text-xs text-blue-600 mb-2">With LaunchOnce</div>
                     <div className="font-mono text-sm text-blue-900">
-                      ✅ Write once → Deploy → Done
+                      Write once → Deploy → Reach everyone
                     </div>
                   </div>
                 </div>
@@ -190,10 +191,10 @@ export default function Home() {
           <div className="text-center mb-16">
             <div className="text-sm font-medium text-blue-600 mb-4">HOW IT WORKS</div>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Four steps to global reach
+              From idea to global launch in minutes
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Create, deploy, and localize—all without leaving your workflow
+              Simple enough for a side project, powerful enough for production
             </p>
           </div>
 
@@ -201,26 +202,26 @@ export default function Home() {
             {[
               {
                 step: '01',
-                title: 'Create your page',
-                description: 'Product launch, event, or announcement. Fill out one simple form in your language.',
+                title: 'Choose what to share',
+                description: 'Hackathon project, portfolio, product, event, news—anything you want the world to see.',
                 icon: <Code2 className="w-6 h-6" />
               },
               {
                 step: '02',
-                title: 'Deploy instantly',
-                description: 'Get your custom URL immediately. No configuration, no waiting.',
+                title: 'Fill in the details',
+                description: 'Add your title, description, and content. Write everything in your native language.',
                 icon: <Zap className="w-6 h-6" />
               },
               {
                 step: '03',
-                title: 'Visitors choose language',
-                description: 'A clean language selector appears. One click switches everything.',
+                title: 'Publish instantly',
+                description: 'Get a custom URL immediately. Your page is live and ready to share globally.',
                 icon: <Globe className="w-6 h-6" />
               },
               {
                 step: '04',
-                title: 'Lingo.dev does the rest',
-                description: 'UI updates automatically. No code changes. No translation files.',
+                title: 'Visitors see their language',
+                description: 'Automatic language detection and selection. Content translates in real-time via Lingo.dev.',
                 icon: <CheckCircle2 className="w-6 h-6" />
               }
             ].map((item, i) => (
@@ -249,37 +250,37 @@ export default function Home() {
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="text-sm font-medium text-blue-600 mb-4">FEATURES</div>
+            <div className="text-sm font-medium text-blue-600 mb-4">USE CASES</div>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything you need, nothing you don't
+              Share anything with anyone, anywhere
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: 'One-click deployment',
-                description: 'Your page goes live the moment you hit publish. No build pipelines, no deployment scripts.',
+                title: 'Hackathon projects',
+                description: 'Showcase your weekend hack to judges and users worldwide. Perfect for DevPost, demo days, and competitions.',
               },
               {
-                title: 'Instant localization',
-                description: 'Lingo.dev translates your UI automatically. Visitors see content in their preferred language.',
+                title: 'Product launches',
+                description: 'Launch your SaaS, app, or tool globally from day one. Reach international early adopters without translation costs.',
               },
               {
-                title: 'GitHub workflow',
-                description: 'Manage translations like code. Review, approve, and version control everything.',
+                title: 'Portfolio sites',
+                description: 'Let your work speak to a global audience. Ideal for designers, developers, and creators seeking worldwide opportunities.',
               },
               {
-                title: 'Custom domains',
-                description: 'Use your own domain or our subdomain. SSL included, no extra setup.',
+                title: 'Event pages',
+                description: 'Conferences, meetups, workshops—make your events accessible to international attendees instantly.',
               },
               {
-                title: 'Analytics ready',
-                description: 'See which languages perform best. Make data-driven decisions about expansion.',
+                title: 'Announcements',
+                description: 'Company news, feature releases, or important updates—communicate clearly across language barriers.',
               },
               {
-                title: 'Developer friendly',
-                description: 'Simple API, clear docs, and a workflow that actually makes sense.',
+                title: 'Side projects',
+                description: 'That tool you built for fun? Share it globally. You never know who might find it useful.',
               }
             ].map((feature, i) => (
               <motion.div
@@ -312,10 +313,10 @@ export default function Home() {
             <div className="absolute inset-0 bg-grid-white/10"></div>
             <div className="relative">
               <h2 className="text-4xl font-bold mb-4">
-                Ready to launch globally?
+                Stop limiting your audience
               </h2>
               <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join teams who ship faster by eliminating localization complexity.
+                Your next visitor could be from Tokyo, Berlin, or São Paulo. Make sure they understand what you built.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 text-base">
@@ -326,7 +327,7 @@ export default function Home() {
                 </Button>
               </div>
               <p className="text-sm text-blue-200 mt-6">
-                Free tier available • No credit card needed
+                Free to start • No credit card • Your first page is always free
               </p>
             </div>
           </motion.div>
