@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, Eye } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, Eye, Link } from "lucide-react";
 
 interface DocumentWithUser extends GetDocumentPublicDto {
   userName: string;
@@ -85,7 +85,20 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   };
 
   const handleEdit = () => {
-    router.push(`document/${document?.id}/edit`);
+    router.push(`/${document?.id}/edit`);
+  };
+
+  const handleCopyLink = async () => {
+    if (!document?.slug) return;
+    
+    const shareUrl = `${window.location.origin}/${document.slug}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast.error("Failed to copy link");
+    }
   };
 
   if (isAuthLoading || isLoading) {
@@ -119,6 +132,10 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           Back
         </Button>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleCopyLink} size="sm">
+            <Link className="mr-2 h-4 w-4" />
+            Copy Link
+          </Button>
           <Button variant="outline" onClick={handleEdit} size="sm">
             <Edit className="mr-2 h-4 w-4" />
             Edit
