@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getAllDocs } from '@/actions/document.action';
 import { GetDocumentPublicDto } from '@/types/docuement/create-document.dto';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 const DashboardPage = () => {
@@ -68,64 +69,70 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.name || 'User'}!
-          </h2>
-          <p className="text-gray-600 mt-1">{user?.email}</p>
-        </div>
-        <div className="flex gap-3">
-          <Button onClick={handleCreateDocument} size="lg">
-            Create New Document
-          </Button>
-          <Button onClick={handleLogout} variant="outline" size="lg">
-            Logout
-          </Button>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between w-full">
+            <div>
+              <CardTitle className="text-3xl">
+                Welcome back, {user?.name || 'User'}!
+              </CardTitle>
+              <CardDescription className="mt-2">{user?.email}</CardDescription>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleCreateDocument} size="lg">
+                Create New Document
+              </Button>
+              <Button onClick={handleLogout} variant="outline" size="lg">
+                Logout
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">Your Documents</h3>
-          <p className="text-sm text-gray-600 mt-1">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Your Documents</CardTitle>
+          <CardDescription>
             Total: {documents.length} document{documents.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        {isLoadingDocs ? (
-          <div className="px-6 py-12 text-center">
-            <div className="text-gray-600">Loading documents...</div>
-          </div>
-        ) : documents.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <div className="text-gray-600 mb-4">No documents yet</div>
-            <Button onClick={handleCreateDocument}>
-              Create Your First Document
-            </Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => router.push(`/dashboard/document/${doc.id}`)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="text-lg font-semibold text-gray-900">
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingDocs ? (
+            <div className="py-12 text-center">
+              <div className="text-gray-600">Loading documents...</div>
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="py-12 text-center">
+              <div className="text-gray-600 mb-4">No documents yet</div>
+              <Button onClick={handleCreateDocument}>
+                Create Your First Document
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {documents.map((doc) => (
+                <Card
+                  key={doc.id}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/dashboard/document/${doc.id}`)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-lg">
                       {doc.title}
-                    </h4>
+                    </CardTitle>
                     {doc.subtitle && (
-                      <p className="text-sm text-gray-600 mt-1">{doc.subtitle}</p>
+                      <CardDescription>{doc.subtitle}</CardDescription>
                     )}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {doc.description && (
-                      <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                      <p className="text-sm text-gray-600
+                       line-clamp-2">
                         {doc.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <svg
                           className="w-4 h-4"
@@ -157,16 +164,16 @@ const DashboardPage = () => {
                       >
                         {doc.visibility}
                       </span>
-                      <span>
-                        {new Date(doc.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(doc.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </div>
                     {doc.tags && doc.tags.length > 0 && (
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2">
                         {doc.tags.map((tag, index) => (
                           <span
                             key={index}
@@ -177,13 +184,13 @@ const DashboardPage = () => {
                         ))}
                       </div>
                     )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
