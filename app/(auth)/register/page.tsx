@@ -28,22 +28,26 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      console.log("Submitting registration data:", data);
       const result = await createUser({
         name: data.name,
         email: data.email,
         password: data.password,
       });
 
+      console.log("Registration result:", result);
+
       if (!result.success) {
-        toast.error(result.error);
+        toast.error(result.error || "Registration failed");
+        setIsLoading(false);
         return;
       }
 
       toast.success("Account created successfully! Please sign in.");
       router.push("/login");
     } catch (error) {
+      console.error("Registration error:", error);
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };

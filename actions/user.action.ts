@@ -17,7 +17,6 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
     createdAt: Date;
 }>> => {
     try {
-        // Validate input
         if (!payload.email || !payload.password || !payload.name) {
             return {
                 success: false,
@@ -25,7 +24,6 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
             };
         }
 
-        // Check if user already exists
         const existingUser = await db
             .select()
             .from(users)
@@ -39,10 +37,8 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
             };
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-        // Create user
         const [user] = await db.insert(users).values({
             name: payload.name,
             email: payload.email,
@@ -53,6 +49,8 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
             email: users.email,
             createdAt: users.createdAt,
         });
+
+        console.log(`User ${user}`)
 
         return {
             success: true,
