@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,11 +34,12 @@ const documentSchema = z.object({
 
 type DocumentFormValues = z.infer<typeof documentSchema>;
 
-export default function EditDocumentPage({ params }: { params: { id: string } }) {
+export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentSchema),
@@ -55,6 +56,11 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     const fetchDocument = async () => {
+      // Wait for auth to load first
+      if (isAuthLoading) {
+        return;
+      }
+
       if (!user?.id) {
         toast.error("You must be logged in to edit this document");
         router.push("/login");
@@ -63,7 +69,7 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
 
       setIsFetching(true);
       try {
-        const result = await getDocumentById(params.id, user.id);
+        const result = await getDocumentById(resolvedParams.id, user.id);
 
         if (result.success && result.data) {
           const doc = result.data;
@@ -90,7 +96,7 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
     };
 
     fetchDocument();
-  }, [params.id, user?.id, router, form]);
+  }, [resolvedParams.id, user?.id, isAuthLoading, router, form]);
 
   const onSubmit = async (data: DocumentFormValues) => {
     if (!user?.id) {
@@ -111,11 +117,11 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
         visibility: data.visibility,
       };
 
-      const result = await updateDocument(params.id, user.id, payload);
+      const result = await updateDocument(resolvedParams.id, user.id, payload);
 
       if (result.success) {
         toast.success(`Document "${result.data.title}" updated successfully!`);
-        router.push(`/document/${params.id}`);
+        router.push(`/document/${resolvedParams.id}`);
       } else {
         toast.error(result.error || "Failed to update document");
       }
@@ -127,7 +133,7 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
     }
   };
 
-  if (isFetching) {
+  if (isAuthLoading || isFetching) {
     return (
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <div className="animate-pulse space-y-6">
@@ -149,7 +155,7 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
       <div className="mb-8">
         <Button
           variant="ghost"
-          onClick={() => router.push(`/document/${params.id}`)}
+          onClick={() => router.push(`/document/${resolvedParams.id}`)}
           size="sm"
           className="mb-4"
         >
@@ -296,7 +302,7 @@ export default function EditDocumentPage({ params }: { params: { id: string } })
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(`/document/${params.id}`)}
+              onClick={() => router.push(`/document/${resolvedParams.id}`)}
               disabled={isLoading}
             >
               Cancel

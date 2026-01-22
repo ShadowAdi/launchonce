@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -14,15 +14,21 @@ interface DocumentWithUser extends GetDocumentPublicDto {
   userEmail: string;
 }
 
-export default function DocumentPage({ params }: { params: { id: string } }) {
+export default function DocumentPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [document, setDocument] = useState<DocumentWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   useEffect(() => {
     const fetchDocument = async () => {
+      // Wait for auth to load first
+      if (isAuthLoading) {
+        return;
+      }
+
       if (!user?.id) {
         toast.error("You must be logged in to view this document");
         router.push("/login");
@@ -31,7 +37,7 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
 
       setIsLoading(true);
       try {
-        const result = await getDocumentById(params.id, user.id);
+        const result = await getDocumentById(resolvedParams.id, user.id);
 
         if (result.success && result.data) {
           setDocument(result.data);
@@ -49,7 +55,7 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
     };
 
     fetchDocument();
-  }, [params.id, user?.id, router]);
+  }, [resolvedParams.id, user?.id, isAuthLoading, router]);
 
   const handleDelete = async () => {
     if (!user?.id || !document) return;
@@ -79,10 +85,10 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
   };
 
   const handleEdit = () => {
-    router.push(`/${document?.id}/edit`);
+    router.push(`document/${document?.id}/edit`);
   };
 
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return (
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <div className="animate-pulse space-y-4">
