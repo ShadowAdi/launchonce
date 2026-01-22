@@ -2,356 +2,355 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { ArrowRight, Globe, Zap, Code2, CheckCircle2, Languages } from 'lucide-react';
 
 export default function Home() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
   };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    }
-  };
-
-  const features = [
-    {
-      icon: '✍️',
-      title: 'Write Once',
-      description: 'Create content in one language. No duplication, no hassle.'
-    },
-    {
-      icon: '🚀',
-      title: 'Deploy Instantly',
-      description: 'Publish your page immediately with a single click.'
-    },
-    {
-      icon: '🌍',
-      title: 'Global Access',
-      description: 'Visitors see content in their preferred language automatically.'
-    }
-  ];
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Sign Up',
-      description: 'Create your account and get started in seconds.'
-    },
-    {
-      number: '02',
-      title: 'Create Page',
-      description: 'Fill in your product, event, or announcement details in one language.'
-    },
-    {
-      number: '03',
-      title: 'Deploy',
-      description: 'Publish instantly at your custom URL—no configuration needed.'
-    },
-    {
-      number: '04',
-      title: 'Go Global',
-      description: 'Visitors select their language. UI updates automatically via Lingo.dev.'
-    }
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100 via-blue-50 to-transparent opacity-60" />
-        
-        <motion.div
-          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-32 sm:pb-32"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <motion.div className="text-center" variants={itemVariants}>
-            <motion.div
-              className="inline-block mb-4 px-4 py-2 bg-blue-100 rounded-full"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: 'spring', stiffness: 400 }}
-            >
-              <span className="text-blue-700 font-medium text-sm">Powered by Lingo.dev</span>
-            </motion.div>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-semibold text-gray-900">LaunchOnce</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Features</a>
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Docs</a>
+            <Button variant="outline" size="sm" className="text-sm">Sign in</Button>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-sm">
+              Get started
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-sm text-blue-700 mb-6">
+              <Zap className="w-3 h-3" />
+              <span>Powered by Lingo.dev</span>
+            </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
-              Launch<span className="text-blue-600">Once</span>
+            <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-gray-900 mb-6">
+              Ship once,<br />reach everywhere
             </h1>
             
-            <p className="text-xl sm:text-2xl text-gray-600 mb-4 max-w-3xl mx-auto">
-              Write content once. Deploy instantly. Reach the world.
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Build your product page in one language. We handle the rest. 
+              No translation files, no code rewrites, no headaches.
             </p>
             
-            <p className="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
-              Create product launches, events, or announcements in a single language—
-              and make them accessible globally without rewriting code or managing translations.
-            </p>
-            
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <Button 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
-              >
-                Get Started Free
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white h-12 px-8 text-base group">
+                Start building free
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button 
-                variant="outline" 
-                className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg rounded-full"
-              >
-                View Demo
+              <Button variant="outline" className="h-12 px-8 text-base">
+                See how it works
               </Button>
-            </motion.div>
+            </div>
+
+            <p className="text-sm text-gray-500 mt-6">No credit card required · 2 min setup</p>
           </motion.div>
 
-          {/* Feature Cards */}
+          {/* Hero Visual */}
           <motion.div
-            className="grid md:grid-cols-3 gap-8 mt-24"
-            variants={containerVariants}
+            className="mt-16 relative"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
           >
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-shadow border border-blue-100"
-              >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </motion.div>
-            ))}
+            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-200">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-3 bg-white rounded-lg px-6 py-4 shadow-lg mb-6">
+                    <Languages className="w-8 h-8 text-blue-600" />
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-900">Available in</div>
+                      <div className="text-xs text-gray-500">English • Spanish • French • 50+ more</div>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm">Interactive demo coming soon</p>
+                </div>
+              </div>
+            </div>
+            {/* Floating elements */}
+            <div className="absolute -top-4 -right-4 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Problem Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              The Localization Problem
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Most teams launch products in one language only. Why?
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
+      {/* Stats */}
+      <section className="py-12 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { icon: '💸', title: 'Expensive', description: 'Professional translation services and developer time add up quickly.' },
-              { icon: '⏰', title: 'Slow', description: 'Coordinating translations delays your launch and iterations.' },
-              { icon: '🔧', title: 'Hard to Maintain', description: 'Every update requires re-translation and redeployment across all languages.' }
-            ].map((item, index) => (
+              { label: 'Languages supported', value: '50+' },
+              { label: 'Setup time', value: '< 2 min' },
+              { label: 'Code changes', value: '0' },
+              { label: 'Translation files', value: '0' }
+            ].map((stat, i) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl border-2 border-blue-100"
+                transition={{ delay: i * 0.1 }}
+                className="text-center"
               >
-                <div className="text-5xl mb-4">{item.icon}</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section className="py-24 bg-gradient-to-b from-blue-600 to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-              The LaunchOnce Solution
-            </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Powered by Lingo.dev, LaunchOnce eliminates the complexity
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* Problem/Solution */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
             >
-              <div className="space-y-6">
+              <div className="text-sm font-medium text-blue-600 mb-4">THE PROBLEM</div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Localization shouldn't block your launch
+              </h2>
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                You've built something great. But launching globally means translation costs, 
+                developer time, and constant maintenance. So most teams just... don't.
+              </p>
+              <div className="space-y-3">
                 {[
-                  { icon: '✅', text: 'One-language content creation' },
-                  { icon: '✅', text: 'Automatic UI localization' },
-                  { icon: '✅', text: 'Easy language expansion' },
-                  { icon: '✅', text: 'GitHub-based translation workflows' }
-                ].map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex items-center gap-4 bg-white/10 backdrop-blur-sm p-4 rounded-xl"
-                  >
-                    <span className="text-2xl">{item.icon}</span>
-                    <span className="text-lg">{item.text}</span>
-                  </motion.div>
+                  'Hiring translators costs thousands per language',
+                  'Managing translation files slows every release',
+                  'Keeping content in sync is a nightmare'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                    <span className="text-gray-700">{item}</span>
+                  </div>
                 ))}
               </div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20"
+              className="relative"
             >
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">💥</span>
-                  <span className="text-2xl font-bold">No code rewrite</span>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="text-xs text-gray-500 mb-2">Traditional approach</div>
+                    <div className="font-mono text-sm text-gray-700">
+                      ❌ Write content → Translate → Deploy → Repeat for each language
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div className="text-xs text-blue-600 mb-2">LaunchOnce</div>
+                    <div className="font-mono text-sm text-blue-900">
+                      ✅ Write once → Deploy → Done
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">💥</span>
-                  <span className="text-2xl font-bold">No manual translation files</span>
-                </div>
-                <p className="text-blue-100 mt-6 text-lg">
-                  Visitors choose their language, and the UI updates automatically.
-                  You maintain content once, deploy everywhere.
-                </p>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* User Flow Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-20"
-          >
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              How It Works
+      {/* How it works */}
+      <section className="py-24 px-6 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="text-sm font-medium text-blue-600 mb-4">HOW IT WORKS</div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Four steps to global reach
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Four simple steps to global reach
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Create, deploy, and localize—all without leaving your workflow
             </p>
-          </motion.div>
+          </div>
 
-          <div className="relative">
-            {/* Connection Line */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600 transform -translate-y-1/2" />
-            
-            <div className="grid md:grid-cols-4 gap-8 relative">
-              {steps.map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.15 }}
-                  className="relative"
-                >
-                  <div className="bg-white border-2 border-blue-200 rounded-2xl p-6 hover:shadow-xl transition-shadow">
-                    <motion.div
-                      className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: 'spring', stiffness: 400 }}
-                    >
-                      {step.number}
-                    </motion.div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-600 text-center">
-                      {step.description}
-                    </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Create your page',
+                description: 'Product launch, event, or announcement. Fill out one simple form in your language.',
+                icon: <Code2 className="w-6 h-6" />
+              },
+              {
+                step: '02',
+                title: 'Deploy instantly',
+                description: 'Get your custom URL immediately. No configuration, no waiting.',
+                icon: <Zap className="w-6 h-6" />
+              },
+              {
+                step: '03',
+                title: 'Visitors choose language',
+                description: 'A clean language selector appears. One click switches everything.',
+                icon: <Globe className="w-6 h-6" />
+              },
+              {
+                step: '04',
+                title: 'Lingo.dev does the rest',
+                description: 'UI updates automatically. No code changes. No translation files.',
+                icon: <CheckCircle2 className="w-6 h-6" />
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="relative"
+              >
+                <div className="bg-white rounded-xl p-6 h-full border border-gray-200 hover:border-blue-200 hover:shadow-md transition-all">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
+                    {item.icon}
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                  <div className="text-sm font-medium text-blue-600 mb-2">Step {item.step}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-blue-50 to-blue-100">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
-        >
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Ready to Go Global?
-          </h2>
-          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-            Join the future of multi-language content deployment. 
-            No complexity, no delays—just write once and launch everywhere.
-          </p>
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="text-sm font-medium text-blue-600 mb-4">FEATURES</div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Everything you need, nothing you don't
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: 'One-click deployment',
+                description: 'Your page goes live the moment you hit publish. No build pipelines, no deployment scripts.',
+              },
+              {
+                title: 'Instant localization',
+                description: 'Lingo.dev translates your UI automatically. Visitors see content in their preferred language.',
+              },
+              {
+                title: 'GitHub workflow',
+                description: 'Manage translations like code. Review, approve, and version control everything.',
+              },
+              {
+                title: 'Custom domains',
+                description: 'Use your own domain or our subdomain. SSL included, no extra setup.',
+              },
+              {
+                title: 'Analytics ready',
+                description: 'See which languages perform best. Make data-driven decisions about expansion.',
+              },
+              {
+                title: 'Developer friendly',
+                description: 'Simple API, clear docs, and a workflow that actually makes sense.',
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="group"
+              >
+                <div className="h-full p-6 rounded-lg hover:bg-gray-50 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto">
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-12 text-center text-white relative overflow-hidden"
           >
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all"
-            >
-              Start Building Now
-            </Button>
+            <div className="absolute inset-0 bg-grid-white/10"></div>
+            <div className="relative">
+              <h2 className="text-4xl font-bold mb-4">
+                Ready to launch globally?
+              </h2>
+              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                Join teams who ship faster by eliminating localization complexity.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 text-base">
+                  Get started free
+                </Button>
+                <Button variant="outline" className="bg-stone-950 border-stone-950 text-white hover:text-white hover:bg-stone-800 h-12 px-8 text-base">
+                  Schedule demo
+                </Button>
+              </div>
+              <p className="text-sm text-blue-200 mt-6">
+                Free tier available • No credit card needed
+              </p>
+            </div>
           </motion.div>
-          <p className="text-sm text-gray-500 mt-6">
-            Free to start • No credit card required • Launch in minutes
-          </p>
-        </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <span className="text-2xl font-bold text-white">
-                Launch<span className="text-blue-400">Once</span>
-              </span>
-              <p className="text-sm mt-2">Powered by Lingo.dev</p>
+      <footer className="border-t border-gray-100 py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Globe className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-semibold text-gray-900">LaunchOnce</span>
             </div>
-            <div className="text-sm">
-              © 2026 LaunchOnce. All rights reserved.
+            <div className="flex items-center gap-8 text-sm text-gray-600">
+              <a href="#" className="hover:text-gray-900">Docs</a>
+              <a href="#" className="hover:text-gray-900">API</a>
+              <a href="#" className="hover:text-gray-900">Support</a>
+              <a href="#" className="hover:text-gray-900">GitHub</a>
+            </div>
+            <div className="text-sm text-gray-500">
+              © 2026 LaunchOnce. Powered by Lingo.dev
             </div>
           </div>
         </div>
