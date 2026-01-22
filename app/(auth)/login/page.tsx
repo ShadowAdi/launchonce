@@ -35,13 +35,11 @@ export default function LoginPage() {
         return;
       }
 
-      // Store token
       localStorage.setItem("authToken", result.data.token);
       
       toast.success("Login successful!");
       
-      // Redirect to dashboard or home
-      router.push("/");
+      router.push("/document");
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {

@@ -31,7 +31,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div 
