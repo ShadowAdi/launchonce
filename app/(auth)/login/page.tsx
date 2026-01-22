@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
   
   const {
     register,
@@ -31,18 +33,20 @@ export default function LoginPage() {
       const result = await loginUser(data.email, data.password);
 
       if (!result.success) {
-        toast.error(result.error);
+        toast.error(result.error || "Login failed");
+        setIsLoading(false);
         return;
       }
 
-      localStorage.setItem("authToken", result.data.token);
+      // Use the login function from AuthContext to store both token and user
+      login(result.data.token, result.data.user);
       
       toast.success("Login successful!");
       
       router.push("/document");
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
