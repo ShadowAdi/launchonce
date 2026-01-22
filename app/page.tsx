@@ -70,7 +70,6 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-6">No credit card required • Live in 2 minutes</p>
           </motion.div>
 
-          {/* Hero Visual */}
           <motion.div
             className="mt-16 relative"
             initial={{ opacity: 0, y: 40 }}
@@ -91,14 +90,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            {/* Floating elements */}
             <div className="absolute -top-4 -right-4 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
             <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats */}
       <section className="py-12 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -124,7 +121,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Problem/Solution */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -164,7 +160,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
+              <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
                 <div className="space-y-4">
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <div className="text-xs text-gray-500 mb-2">Traditional approach</div>
@@ -185,7 +181,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="py-24 px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -301,14 +296,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-12 text-center text-white relative overflow-hidden"
+            className="bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-12 text-center text-white relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-grid-white/10"></div>
             <div className="relative">
@@ -334,7 +328,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-gray-100 py-12 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
