@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, pgTable, serial, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -20,6 +20,7 @@ export const document = pgTable("docuements", {
     coverImage: text("cover_image"),
     content: text("content").notNull(),
     tags: text("tags").array(),
+    viewCount: integer("view_count").notNull().default(0),
     visibility: varchar("visibility", { length: 10 }).notNull().default("draft"),
     createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
