@@ -4,6 +4,9 @@ import { CreateUserDto } from "@/types/user/create-user.dto";
 import { ActionResponse } from "@/types/action-response";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 export const createUser = async (payload: CreateUserDto): Promise<ActionResponse<{
     id: string;
@@ -80,9 +83,12 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
 };
 
 export const loginUser = async (email: string, password: string): Promise<ActionResponse<{
-    id: string;
-    name: string | null;
-    email: string;
+    token: string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
 }>> => {
     try {
         // Validate input
@@ -117,12 +123,25 @@ export const loginUser = async (email: string, password: string): Promise<Action
             };
         }
 
+        // Generate JWT token
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email
+            },
+            JWT_SECRET,
+            { expiresIn: "7d" } // Token expires in 7 days
+        );
+
         return {
             success: true,
             data: {
-                id: user.id,
-                name: user.name,
-                email: user.email
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                }
             }
         };
     } catch (error) {
@@ -138,6 +157,75 @@ export const loginUser = async (email: string, password: string): Promise<Action
         return {
             success: false,
             error: "Login failed. Please try again"
+        };
+    }
+};
+
+export const getUserFromToken = async (token: string): Promise<ActionResponse<{
+    id: string;
+    name: string | null;
+    email: string;
+}>> => {
+    try {
+        if (!token) {
+            return {
+                success: false,
+                error: "Token is required"
+            };
+        }
+
+        // Verify and decode token
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+
+        // Fetch user from database
+        const [user] = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+            })
+            .from(users)
+            .where(eq(users.id, decoded.id))
+            .limit(1);
+
+        if (!user) {
+            return {
+                success: false,
+                error: "User not found"
+            };
+        }
+
+        return {
+            success: true,
+            data: user
+        };
+    } catch (error) {
+        console.error(`Failed to get user from token:`, error);
+
+        if (error instanceof jwt.JsonWebTokenError) {
+            return {
+                success: false,
+                error: "Invalid token"
+            };
+        }
+
+        if (error instanceof jwt.TokenExpiredError) {
+            return {
+                success: false,
+                error: "Token has expired"
+            };
+        }
+
+        if (error instanceof Error && error.message.includes("connection")) {
+            return {
+                success: false,
+                error: "Database connection failed. Please try again later"
+            };
+        }
+
+        return {
+            success: false,
+            error: "Failed to authenticate. Please login again"
         };
     }
 };
