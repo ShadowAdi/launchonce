@@ -47,7 +47,7 @@ const DashboardPage = () => {
   }, [user, isAuthenticated]);
 
   const handleCreateDocument = () => {
-    router.push('/dashboard/create-document');
+    router.push('/create');
   };
 
   const handleLogout = () => {
@@ -115,7 +115,7 @@ const DashboardPage = () => {
                 <Card
                   key={doc.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => router.push(`/dashboard/document/${doc.id}`)}
+                  onClick={() => router.push(`/document/${doc.id}`)}
                 >
                   <CardHeader>
                     <CardTitle className="text-lg">
