@@ -79,7 +79,7 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
   };
 
   const handleEdit = () => {
-    router.push(`/document/${document?.id}/edit`);
+    router.push(`/${document?.id}/edit`);
   };
 
   if (isLoading) {
@@ -107,7 +107,6 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
-      {/* Header with actions */}
       <div className="flex items-center justify-between mb-6">
         <Button variant="ghost" onClick={() => router.push("/")} size="sm">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -130,7 +129,6 @@ export default function DocumentPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Document metadata */}
       <div className="mb-6 space-y-2">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
