@@ -1,21 +1,106 @@
+"use client";
+
+import { useState, useEffect, use, useMemo } from 'react';
 import { getDocumentBySlug } from '@/actions/document.action';
-import { notFound } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Eye } from 'lucide-react';
+import { BlockNoteView } from "@blocknote/mantine";
+import { useCreateBlockNote } from "@blocknote/react";
+import { PartialBlock } from "@blocknote/core";
+import { toast } from "sonner";
+import "@blocknote/mantine/style.css";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function DocumentPage({ params }: PageProps) {
-  const { slug } = await params;
-  const result = await getDocumentBySlug(slug);
+export default function DocumentPage({ params }: PageProps) {
+  const resolvedParams = use(params);
+  const [doc, setDoc] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
 
-  if (!result.success || !result.data) {
-    notFound();
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchDocument = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getDocumentBySlug(resolvedParams.slug);
+
+        if (result.success && result.data) {
+          setDoc(result.data);
+        } else {
+          toast.error(!result.success ? result.error : "Failed to load document");
+          router.push("/");
+        }
+      } catch (error) {
+        console.error("Error fetching document:", error);
+        toast.error("An unexpected error occurred");
+        router.push("/");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDocument();
+  }, [resolvedParams.slug, router]);
+
+  // Parse BlockNote content
+  const initialBlocks = useMemo(() => {
+    if (!doc?.content || !isMounted) return undefined;
+    try {
+      return JSON.parse(doc.content) as PartialBlock[];
+    } catch {
+      return [
+        {
+          type: "paragraph" as const,
+          content: doc.content,
+        },
+      ] as PartialBlock[];
+    }
+  }, [doc?.content, isMounted]);
+
+  const editor = useCreateBlockNote(
+    isMounted ? {
+      initialContent: initialBlocks,
+    } : undefined,
+    [initialBlocks, isMounted]
+  );
+
+  if (isLoading || !isMounted || !editor) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="animate-pulse space-y-8">
+            <div className="h-12 bg-muted rounded w-3/4"></div>
+            <div className="h-6 bg-muted rounded w-1/2"></div>
+            <div className="flex items-center gap-4 py-6">
+              <div className="h-12 w-12 rounded-full bg-muted"></div>
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-muted rounded w-32"></div>
+                <div className="h-3 bg-muted rounded w-48"></div>
+              </div>
+            </div>
+            <div className="space-y-3 pt-8">
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const doc = result.data;
+  if (!doc) {
+    return null;
+  }
+
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -75,7 +160,7 @@ export default async function DocumentPage({ params }: PageProps) {
             {/* Tags */}
             {doc.tags && doc.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4">
-                {doc.tags.map((tag, index) => (
+                {doc.tags.map((tag:string, index:number) => (
                   <span
                     key={index}
                     className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium"
@@ -99,27 +184,10 @@ export default async function DocumentPage({ params }: PageProps) {
 
         {/* Content */}
         <div className="py-12 pb-20">
-          <div
-            className="prose prose-lg sm:prose-xl max-w-none dark:prose-invert
-              prose-headings:font-bold prose-headings:tracking-tight
-              prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-6
-              prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-5
-              prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
-              prose-p:leading-relaxed prose-p:mb-6 prose-p:text-foreground/90
-              prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-a:underline-offset-4
-              prose-strong:font-semibold prose-strong:text-foreground
-              prose-code:text-primary prose-code:bg-primary/10 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:font-mono prose-code:text-base prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-muted/50 prose-pre:rounded-xl prose-pre:border prose-pre:shadow-sm
-              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:not-italic prose-blockquote:rounded-r-lg
-              prose-ul:my-6 prose-ul:list-disc prose-ul:pl-6
-              prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-6
-              prose-li:my-2 prose-li:text-foreground/90
-              prose-img:rounded-xl prose-img:shadow-lg prose-img:my-10 prose-img:border
-              prose-hr:my-12 prose-hr:border-muted
-              prose-table:border-collapse prose-table:my-8 prose-table:rounded-lg prose-table:overflow-hidden
-              prose-th:bg-muted/50 prose-th:border prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-semibold
-              prose-td:border prose-td:px-4 prose-td:py-3 prose-td:text-foreground/90"
-            dangerouslySetInnerHTML={{ __html: doc.content }}
+          <BlockNoteView
+            editor={editor}
+            editable={false}
+            theme="light"
           />
         </div>
       </article>
@@ -144,33 +212,4 @@ export default async function DocumentPage({ params }: PageProps) {
       </div>
     </main>
   );
-}
-
-export async function generateMetadata({ params }: PageProps) {
-  const { slug } = await params;
-  const result = await getDocumentBySlug(slug);
-
-  if (!result.success || !result.data) {
-    return {
-      title: 'Document Not Found',
-    };
-  }
-
-  const doc = result.data;
-
-  return {
-    title: doc.title,
-    description: doc.description || doc.subtitle || `Read ${doc.title} on LaunchOnce`,
-    openGraph: {
-      title: doc.title,
-      description: doc.description || doc.subtitle,
-      images: doc.coverImage ? [doc.coverImage] : [],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: doc.title,
-      description: doc.description || doc.subtitle,
-      images: doc.coverImage ? [doc.coverImage] : [],
-    },
-  };
 }
