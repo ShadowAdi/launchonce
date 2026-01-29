@@ -6,8 +6,18 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, Eye, Calendar, Share2, ExternalLink, Copy, Globe } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, ExternalLink, Copy, Globe } from "lucide-react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
@@ -23,6 +33,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [document, setDocument] = useState<DocumentWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
@@ -84,16 +95,16 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     initialContent: initialBlocks,
   }, [initialBlocks]);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     if (!user?.id || !document) return;
 
-    const confirmed = confirm(
-      `Are you sure you want to delete "${document.title}"? This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
     setIsDeleting(true);
+    setShowDeleteDialog(false);
+    
     try {
       const result = await deleteDocument(document.id, user.id);
 
@@ -209,7 +220,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={isDeleting}
                 className="text-destructive hover:text-destructive gap-2"
               >
@@ -316,6 +327,28 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>"{document.title}"</strong>.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
