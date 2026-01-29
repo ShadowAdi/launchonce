@@ -32,14 +32,14 @@ export function TagsInput({
   return (
     <div className="flex flex-wrap gap-2 rounded-md border p-2">
       {value.map((tag) => (
-        <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+        <Badge key={tag} variant="default" className="flex items-center gap-1 px-4 py-2 text-base">
           {tag}
           <button
             type="button"
             onClick={() => removeTag(tag)}
-            className="ml-1 rounded-full hover:bg-muted"
+            className="ml-1 rounded-full cursor-pointer"
           >
-            <X size={12} />
+            <X size={14} />
           </button>
         </Badge>
       ))}
