@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, Eye, Calendar, Share2, MoreHorizontal } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, Eye, Calendar, Share2, ExternalLink, Copy, Globe } from "lucide-react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
@@ -162,52 +162,84 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-8 md:px-12 py-12">
-        {/* Simple header with actions */}
-        <div className="flex items-center justify-between mb-12">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="text-muted-foreground hover:text-foreground -ml-3"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-
-          <div className="relative">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => setShowMenu(!showMenu)}
-              className="text-muted-foreground hover:text-foreground"
+              size="sm"
+              onClick={() => router.push('/document')}
             >
-              <MoreHorizontal className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              All Documents
             </Button>
 
-            {showMenu && (
-              <div className="absolute right-0 mt-2 w-40 bg-card border rounded-lg shadow-lg z-20 py-1">
-                <button
-                  className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
-                  onClick={() => {
-                    handleEdit();
-                    setShowMenu(false);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </button>
-                <button
-                  className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2 text-destructive"
-                  onClick={() => {
-                    handleDelete();
-                    setShowMenu(false);
-                  }}
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
+            <div className="flex items-center gap-2">
+              {document?.visibility === 'published' && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyLink}
+                    className="gap-2"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`/${document.slug}`, '_blank')}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Preview
+                  </Button>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEdit}
+                className="gap-2"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="text-destructive hover:text-destructive gap-2"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Status Badge & Share Info */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                document.visibility === 'published'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                  : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
+              {document.visibility === 'published' ? <Globe className="h-3.5 w-3.5" /> : null}
+              {document.visibility}
+            </span>
+            {document.visibility === 'published' && (
+              <span className="text-sm text-muted-foreground">
+                Public at /{document.slug}
+              </span>
             )}
           </div>
         </div>

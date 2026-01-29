@@ -8,7 +8,8 @@ import { GetDocumentPublicDto } from '@/types/docuement/create-document.dto';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Plus, Search, LogOut, Eye, Calendar } from 'lucide-react';
+import { Plus, Search, LogOut, Eye, Calendar, FileText, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 const DashboardPage = () => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -83,23 +84,27 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div>
-              <h1 className="text-xl font-semibold">My Documents</h1>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-            </div>
             <div className="flex items-center gap-3">
-              <Button onClick={handleCreateDocument} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                New Document
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold">My Documents</h1>
+                <p className="text-xs text-muted-foreground">{user?.name || user?.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleCreateDocument} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Document</span>
               </Button>
               <Button onClick={handleLogout} variant="ghost" size="sm">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -151,81 +156,105 @@ const DashboardPage = () => {
           </div>
         ) : filteredDocuments.length === 0 ? (
           <div className="py-20 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
             <div className="text-muted-foreground mb-4">
               {searchQuery || filterVisibility !== 'all' 
                 ? 'No documents match your filters' 
-                : 'No documents yet'}
+                : 'No documents yet. Start creating!'}
             </div>
             {!searchQuery && filterVisibility === 'all' && (
-              <Button onClick={handleCreateDocument}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={handleCreateDocument} size="lg" className="gap-2">
+                <Sparkles className="h-4 w-4" />
                 Create Your First Document
               </Button>
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredDocuments.map((doc) => (
               <div
                 key={doc.id}
-                className="group border rounded-lg p-4 hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-card"
+                className="group relative border rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer bg-card"
                 onClick={() => router.push(`/document/${doc.id}`)}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+                {/* Cover Image */}
+                {doc.coverImage ? (
+                  <div className="relative h-40 w-full bg-muted overflow-hidden">
+                    <Image
+                      src={doc.coverImage}
+                      alt={doc.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-white font-semibold text-lg line-clamp-2 drop-shadow-lg">
                         {doc.title}
                       </h3>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
-                          doc.visibility === 'published'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                        }`}
-                      >
-                        {doc.visibility}
-                      </span>
                     </div>
-                    
-                    {doc.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {doc.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(doc.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {doc.viewCount} views
-                      </span>
+                  </div>
+                ) : (
+                  <div className="relative h-40 w-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent flex items-center justify-center">
+                    <FileText className="h-12 w-12 text-primary/20" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                        {doc.title}
+                      </h3>
                     </div>
+                  </div>
+                )}
 
-                    {doc.tags && doc.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {doc.tags.slice(0, 5).map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {doc.tags.length > 5 && (
-                          <span className="px-2 py-0.5 text-muted-foreground text-xs">
-                            +{doc.tags.length - 5} more
-                          </span>
-                        )}
-                      </div>
-                    )}
+                {/* Content */}
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        doc.visibility === 'published'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                      }`}
+                    >
+                      {doc.visibility}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Eye className="h-3 w-3" />
+                      {doc.viewCount}
+                    </span>
+                  </div>
+
+                  {doc.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {doc.description}
+                    </p>
+                  )}
+
+                  {doc.tags && doc.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {doc.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {doc.tags.length > 3 && (
+                        <span className="px-2 py-0.5 text-muted-foreground text-xs">
+                          +{doc.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(doc.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
                   </div>
                 </div>
               </div>
