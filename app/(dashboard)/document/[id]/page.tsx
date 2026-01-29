@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, Eye, Calendar, Share2, MoreHorizontal } from "lucide-react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
@@ -23,9 +23,14 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [document, setDocument] = useState<DocumentWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -63,7 +68,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
   // Parse BlockNote content
   const initialBlocks = useMemo(() => {
-    if (!document?.content) return undefined;
+    if (!document?.content || !isMounted) return undefined;
     try {
       return JSON.parse(document.content) as PartialBlock[];
     } catch {
@@ -74,11 +79,11 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         },
       ] as PartialBlock[];
     }
-  }, [document?.content]);
+  }, [document?.content, isMounted]);
 
   const editor = useCreateBlockNote({
     initialContent: initialBlocks,
-  });
+  }, [initialBlocks]);
 
   const handleDelete = async () => {
     if (!user?.id || !document) return;
@@ -95,7 +100,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
       if (result.success) {
         toast.success("Document deleted successfully");
-        router.push("/");
+        router.push("/document");
       } else {
         toast.error(!result.success ? result.error : "Failed to delete document");
       }
@@ -108,10 +113,18 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   };
 
   const handleEdit = () => {
-    router.push(`${document?.id}/edit`);
+    router.push(`/document/${document?.id}/edit`);
   };
 
-  if (isAuthLoading || isLoading) {
+  const handleCopyLink = () => {
+    if (document) {
+      const url = `${window.location.origin}/${document.slug}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  if (isAuthLoading || isLoading || !isMounted) {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto px-12 py-16">
@@ -138,7 +151,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           <p className="text-muted-foreground mb-6">
             The document you're looking for doesn't exist or has been removed.
           </p>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Go back
           </Button>
@@ -152,17 +165,17 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
       <div className="max-w-4xl mx-auto px-8 md:px-12 py-12">
         {/* Simple header with actions */}
         <div className="flex items-center justify-between mb-12">
-          <Button 
-            variant="ghost" 
-            onClick={() => router.push("/")}
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
             className="text-muted-foreground hover:text-foreground -ml-3"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          
+
           <div className="relative">
-            <Button 
+            <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowMenu(!showMenu)}
@@ -170,10 +183,10 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             >
               <MoreHorizontal className="h-5 w-5" />
             </Button>
-            
+
             {showMenu && (
               <div className="absolute right-0 mt-2 w-40 bg-card border rounded-lg shadow-lg z-20 py-1">
-                <button 
+                <button
                   className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
                   onClick={() => {
                     handleEdit();
@@ -183,7 +196,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
                   <Edit className="h-4 w-4" />
                   Edit
                 </button>
-                <button 
+                <button
                   className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2 text-destructive"
                   onClick={() => {
                     handleDelete();
@@ -249,9 +262,9 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
         {/* BlockNote Content */}
         <div className="mb-12">
-          <BlockNoteView 
-            editor={editor} 
-            editable={false} 
+          <BlockNoteView
+            editor={editor}
+            editable={false}
             theme="light"
           />
         </div>
