@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, Eye, Link } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { BlockNoteView } from "@blocknote/mantine";
+import { useCreateBlockNote } from "@blocknote/react";
+import { PartialBlock } from "@blocknote/core";
+import "@blocknote/mantine/style.css";
 
 interface DocumentWithUser extends GetDocumentPublicDto {
   userName: string;
@@ -19,12 +23,12 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [document, setDocument] = useState<DocumentWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
 
   useEffect(() => {
     const fetchDocument = async () => {
-      // Wait for auth to load first
       if (isAuthLoading) {
         return;
       }
@@ -57,6 +61,25 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     fetchDocument();
   }, [resolvedParams.id, user?.id, isAuthLoading, router]);
 
+  // Parse BlockNote content
+  const initialBlocks = useMemo(() => {
+    if (!document?.content) return undefined;
+    try {
+      return JSON.parse(document.content) as PartialBlock[];
+    } catch {
+      return [
+        {
+          type: "paragraph" as const,
+          content: document.content,
+        },
+      ] as PartialBlock[];
+    }
+  }, [document?.content]);
+
+  const editor = useCreateBlockNote({
+    initialContent: initialBlocks,
+  });
+
   const handleDelete = async () => {
     if (!user?.id || !document) return;
 
@@ -88,144 +111,167 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     router.push(`${document?.id}/edit`);
   };
 
-  const handleCopyLink = async () => {
-    if (!document?.slug) return;
-    
-    const shareUrl = `${window.location.origin}/${document.slug}`;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied to clipboard!");
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      toast.error("Failed to copy link");
-    }
-  };
-
   if (isAuthLoading || isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl py-8 px-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-12 py-16">
+          <div className="animate-pulse space-y-8">
+            <div className="h-4 bg-muted rounded w-32"></div>
+            <div className="h-12 bg-muted rounded w-3/4"></div>
+            <div className="h-6 bg-muted rounded w-1/2"></div>
+            <div className="space-y-3 pt-8">
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded w-5/6"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!document) {
+  if (!document || !editor) {
     return (
-      <div className="container mx-auto max-w-4xl py-8 px-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Document not found</h1>
-          <Button onClick={() => router.push("/")}>Go back home</Button>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-semibold mb-3">Document not found</h1>
+          <p className="text-muted-foreground mb-6">
+            The document you're looking for doesn't exist or has been removed.
+          </p>
+          <Button variant="outline" onClick={() => router.push("/")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go back
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" onClick={() => router.push("/")} size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCopyLink} size="sm">
-            <Link className="mr-2 h-4 w-4" />
-            Copy Link
-          </Button>
-          <Button variant="outline" onClick={handleEdit} size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            size="sm"
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-8 md:px-12 py-12">
+        {/* Simple header with actions */}
+        <div className="flex items-center justify-between mb-12">
+          <Button 
+            variant="ghost" 
+            onClick={() => router.push("/")}
+            className="text-muted-foreground hover:text-foreground -ml-3"
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {isDeleting ? "Deleting..." : "Delete"}
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
           </Button>
+          
+          <div className="relative">
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMenu(!showMenu)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+            
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-40 bg-card border rounded-lg shadow-lg z-20 py-1">
+                <button 
+                  className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
+                  onClick={() => {
+                    handleEdit();
+                    setShowMenu(false);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </button>
+                <button 
+                  className="w-full px-4 py-2 text-sm text-left hover:bg-muted flex items-center gap-2 text-destructive"
+                  onClick={() => {
+                    handleDelete();
+                    setShowMenu(false);
+                  }}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="mb-6 space-y-2">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Eye className="h-4 w-4" />
-            {document.viewCount} views
-          </span>
-          <span>•</span>
-          <span>
-            {new Date(document.createdAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
-          <span>•</span>
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${
-              document.visibility === "published"
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-            }`}
-          >
-            {document.visibility}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          By {document.userName} ({document.userEmail})
-        </p>
-      </div>
-
-      {/* Cover image */}
-      {document.coverImage && (
-        <div className="mb-8 rounded-lg overflow-hidden">
-          <img
-            src={document.coverImage}
-            alt={document.title}
-            className="w-full h-auto max-h-96 object-cover"
-          />
-        </div>
-      )}
-
-      {/* Document content */}
-      <article className="prose dark:prose-invert max-w-none">
-        <h1 className="text-4xl font-bold mb-2">{document.title}</h1>
-
-        {document.subtitle && (
-          <p className="text-xl text-muted-foreground mb-4">{document.subtitle}</p>
+        {/* Cover Image */}
+        {document.coverImage && (
+          <div className="mb-12 rounded-sm overflow-hidden">
+            <img
+              src={document.coverImage}
+              alt={document.title}
+              className="w-full h-auto object-cover"
+            />
+          </div>
         )}
 
-        {document.description && (
-          <p className="text-lg text-muted-foreground mb-6 pb-6 border-b">
-            {document.description}
+        {/* Title */}
+        <h1 className="text-5xl font-bold mb-3 leading-tight">
+          {document.title}
+        </h1>
+
+        {/* Subtitle */}
+        {document.subtitle && (
+          <p className="text-xl text-muted-foreground mb-8">
+            {document.subtitle}
           </p>
         )}
 
-        <div className="whitespace-pre-wrap">{document.content}</div>
-      </article>
-
-      {/* Tags */}
-      {document.tags && document.tags.length > 0 && (
-        <div className="mt-8 pt-8 border-t">
-          <h3 className="text-sm font-semibold mb-2">Tags</h3>
-          <div className="flex flex-wrap gap-2">
-            {document.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
-              >
-                {tag}
-              </span>
-            ))}
+        {/* Author and metadata */}
+        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-12 pb-12 border-b">
+          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+            {document.userName.charAt(0).toUpperCase()}
           </div>
+          <span>{document.userName}</span>
+          <span>·</span>
+          <time dateTime={document.createdAt}>
+            {new Date(document.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </time>
         </div>
-      )}
+
+        {/* Description */}
+        {document.description && (
+          <div className="mb-8">
+            <p className="text-lg text-foreground/80 leading-relaxed">
+              {document.description}
+            </p>
+          </div>
+        )}
+
+        {/* BlockNote Content */}
+        <div className="mb-12">
+          <BlockNoteView 
+            editor={editor} 
+            editable={false} 
+            theme="light"
+          />
+        </div>
+
+        {/* Tags */}
+        {document.tags && document.tags.length > 0 && (
+          <div className="pt-8 border-t">
+            <div className="flex flex-wrap gap-2">
+              {document.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1.5 bg-muted text-muted-foreground rounded-md text-sm hover:bg-muted/80 transition-colors"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
