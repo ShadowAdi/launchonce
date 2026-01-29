@@ -27,7 +27,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const { user, isLoading: isAuthLoading } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -227,11 +227,10 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                document.visibility === 'published'
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${document.visibility === 'published'
                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                   : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-              }`}
+                }`}
             >
               {document.visibility === 'published' ? <Globe className="h-3.5 w-3.5" /> : null}
               {document.visibility}
@@ -244,16 +243,6 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
 
-        {/* Cover Image */}
-        {document.coverImage && (
-          <div className="mb-12 rounded-sm overflow-hidden">
-            <img
-              src={document.coverImage}
-              alt={document.title}
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        )}
 
         {/* Title */}
         <h1 className="text-5xl font-bold mb-3 leading-tight">
@@ -282,6 +271,17 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             })}
           </time>
         </div>
+
+        {/* Cover Image */}
+        {document.coverImage && (
+          <div className="mb-12 max-h-75 overflow-hidden">
+            <img
+              src={document.coverImage}
+              alt={document.title}
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
 
         {/* Description */}
         {document.description && (
