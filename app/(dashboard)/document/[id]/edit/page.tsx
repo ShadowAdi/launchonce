@@ -341,6 +341,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                       Provide a URL to an image for your document cover
                     </FormDescription>
                     <FormMessage />
+                    {field.value && (
+                      <div className="mt-4 rounded-lg border overflow-hidden">
+                        <img
+                          src={field.value}
+                          alt="Cover preview"
+                          className="w-full h-48 object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "";
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
                   </FormItem>
                 )}
               />
