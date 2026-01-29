@@ -11,7 +11,6 @@ import { getDocumentById, updateDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -29,6 +28,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TagsInput } from "@/components/global/TagInput";
+import { BlockNoteEditorComponent } from "@/components/global/BlockNoteEditor";
+import { MultiStepForm } from "@/components/global/MultiStepForm";
 import { ArrowLeft, FileEdit } from "lucide-react";
 
 const documentSchema = z.object({
@@ -43,8 +44,24 @@ const documentSchema = z.object({
 
 type DocumentFormValues = z.infer<typeof documentSchema>;
 
+const steps = [
+  {
+    title: "Basic Info",
+    description: "Title and description",
+  },
+  {
+    title: "Content",
+    description: "Edit your content",
+  },
+  {
+    title: "Settings",
+    description: "Media and visibility",
+  },
+];
+
 export default function EditDocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const router = useRouter();
@@ -142,17 +159,50 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
     }
   };
 
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof DocumentFormValues)[] = [];
+
+    if (currentStep === 0) {
+      fieldsToValidate = ["title", "subtitle", "description"];
+    } else if (currentStep === 1) {
+      fieldsToValidate = ["content"];
+    }
+
+    const isValid = await form.trigger(fieldsToValidate);
+    if (isValid) {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }
+  };
+
+  const handlePrev = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSubmit = () => {
+    form.handleSubmit(onSubmit)();
+  };
+
+  const canGoNext = () => {
+    if (currentStep === 0) {
+      return form.watch("title").length > 0;
+    }
+    if (currentStep === 1) {
+      return form.watch("content").length > 0;
+    }
+    return true;
+  };
+
   if (isAuthLoading || isFetching) {
     return (
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
           <div className="space-y-4">
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -182,16 +232,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Document Information</CardTitle>
-          <CardDescription>
-            Update the information about your document
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form}>
+        <MultiStepForm
+          steps={steps}
+          currentStep={currentStep}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          canGoNext={canGoNext()}
+        >
+          {/* Step 1: Basic Info */}
+          {currentStep === 0 && (
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="title"
@@ -233,11 +286,19 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                         className="min-h-20"
                       />
                     </FormControl>
+                    <FormDescription>
+                      A short summary of what this document is about
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+          )}
 
+          {/* Step 2: Content */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="content"
@@ -245,17 +306,24 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   <FormItem>
                     <FormLabel>Content *</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Write your document content here..."
-                        {...field}
-                        className="min-h-64"
+                      <BlockNoteEditorComponent
+                        onChange={field.onChange}
+                        initialContent={field.value}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Edit your document content using the rich text editor
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+          )}
 
+          {/* Step 3: Settings */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="coverImage"
@@ -322,24 +390,10 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                   </FormItem>
                 )}
               />
-
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Updating..." : "Update Document"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push(`/document/${resolvedParams.id}`)}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
+          )}
+        </MultiStepForm>
+      </Form>
     </div>
   );
 }

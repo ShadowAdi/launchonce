@@ -11,7 +11,6 @@ import { createDocument } from "@/actions/document.action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -29,6 +28,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TagsInput } from "@/components/global/TagInput";
+import { BlockNoteEditorComponent } from "@/components/global/BlockNoteEditor";
+import { MultiStepForm } from "@/components/global/MultiStepForm";
 import { FileText } from "lucide-react";
 
 const documentSchema = z.object({
@@ -43,7 +44,23 @@ const documentSchema = z.object({
 
 type DocumentFormValues = z.infer<typeof documentSchema>;
 
+const steps = [
+  {
+    title: "Basic Info",
+    description: "Title and description",
+  },
+  {
+    title: "Content",
+    description: "Write your content",
+  },
+  {
+    title: "Settings",
+    description: "Media and visibility",
+  },
+];
+
 export default function CreateDocumentPage() {
+  const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
@@ -97,6 +114,39 @@ export default function CreateDocumentPage() {
     }
   };
 
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof DocumentFormValues)[] = [];
+
+    if (currentStep === 0) {
+      fieldsToValidate = ["title", "subtitle", "description"];
+    } else if (currentStep === 1) {
+      fieldsToValidate = ["content"];
+    }
+
+    const isValid = await form.trigger(fieldsToValidate);
+    if (isValid) {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }
+  };
+
+  const handlePrev = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSubmit = () => {
+    form.handleSubmit(onSubmit)();
+  };
+
+  const canGoNext = () => {
+    if (currentStep === 0) {
+      return form.watch("title").length > 0;
+    }
+    if (currentStep === 1) {
+      return form.watch("content").length > 0;
+    }
+    return true;
+  };
+
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
       <div className="mb-8">
@@ -107,20 +157,23 @@ export default function CreateDocumentPage() {
           <h1 className="text-3xl font-bold">Create New Document</h1>
         </div>
         <p className="text-muted-foreground">
-          Fill in the details below to create your document
+          Follow the steps to create your document
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Document Information</CardTitle>
-          <CardDescription>
-            Enter the basic information about your document
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form}>
+        <MultiStepForm
+          steps={steps}
+          currentStep={currentStep}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          canGoNext={canGoNext()}
+        >
+          {/* Step 1: Basic Info */}
+          {currentStep === 0 && (
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="title"
@@ -162,11 +215,19 @@ export default function CreateDocumentPage() {
                         className="min-h-20"
                       />
                     </FormControl>
+                    <FormDescription>
+                      A short summary of what this document is about
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+          )}
 
+          {/* Step 2: Content */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="content"
@@ -174,17 +235,24 @@ export default function CreateDocumentPage() {
                   <FormItem>
                     <FormLabel>Content *</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Write your document content here..."
-                        {...field}
-                        className="min-h-64"
+                      <BlockNoteEditorComponent
+                        onChange={field.onChange}
+                        initialContent={field.value}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Write your document content using the rich text editor
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+          )}
 
+          {/* Step 3: Settings */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="coverImage"
@@ -251,24 +319,10 @@ export default function CreateDocumentPage() {
                   </FormItem>
                 )}
               />
-
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Creating..." : "Create Document"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/")}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
+          )}
+        </MultiStepForm>
+      </Form>
     </div>
   );
 }
