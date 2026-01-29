@@ -25,7 +25,6 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const [showMenu, setShowMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {

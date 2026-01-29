@@ -113,39 +113,48 @@ const DashboardPage = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by title, description, or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10"
+              />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant={filterVisibility === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterVisibility('all')}
-            >
-              All
-            </Button>
-            <Button
-              variant={filterVisibility === 'published' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterVisibility('published')}
-            >
-              Published
-            </Button>
-            <Button
-              variant={filterVisibility === 'draft' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterVisibility('draft')}
-            >
-              Draft
-            </Button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground font-medium">Filter:</span>
+            <div className="flex gap-2">
+              <Button
+                variant={filterVisibility === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('all')}
+                className="rounded-full"
+              >
+                All ({documents.length})
+              </Button>
+              <Button
+                variant={filterVisibility === 'published' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('published')}
+                className="rounded-full"
+              >
+                Published ({documents.filter(d => d.visibility === 'published').length})
+              </Button>
+              <Button
+                variant={filterVisibility === 'draft' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterVisibility('draft')}
+                className="rounded-full"
+              >
+                Draft ({documents.filter(d => d.visibility === 'draft').length})
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -176,7 +185,7 @@ const DashboardPage = () => {
             {filteredDocuments.map((doc) => (
               <div
                 key={doc.id}
-                className="group relative border rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer bg-card"
+                className="group relative border rounded-xl overflow-hidden hover:shadow-lg  transition-all cursor-pointer bg-card"
                 onClick={() => router.push(`/document/${doc.id}`)}
               >
                 {/* Cover Image */}
