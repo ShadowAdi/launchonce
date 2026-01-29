@@ -4,7 +4,7 @@ export interface CreateDocumentDto {
     description?: string;
     content: string;
     coverImage?: string;
-    tags?: [string];
+    tags?: string[];
     visibility?: "draft" | "published";
 }
 

@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { TagsInput } from "@/components/global/TagInput";
 
 const documentSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -27,7 +28,7 @@ const documentSchema = z.object({
   description: z.string().max(500, "Description must be less than 500 characters").optional().or(z.literal("")),
   content: z.string().min(1, "Content is required"),
   coverImage: z.url("Must be a valid URL").optional().or(z.literal("")),
-  tags: z.string().optional(),
+  tags: z.array(z.string()).optional(),
   visibility: z.enum(["draft", "published"]),
 });
 
@@ -46,7 +47,7 @@ export default function CreateDocumentPage() {
       description: "",
       content: "",
       coverImage: "",
-      tags: "",
+      tags: [],
       visibility: "draft",
     },
   });
@@ -66,7 +67,7 @@ export default function CreateDocumentPage() {
         description: data.description || undefined,
         content: data.content,
         coverImage: data.coverImage || undefined,
-        tags: data.tags ? [data.tags] as [string] : undefined,
+        tags: data.tags ? data.tags : [],
         visibility: data.visibility,
       };
 
@@ -190,10 +191,14 @@ export default function CreateDocumentPage() {
               <FormItem>
                 <FormLabel>Tags</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., technology, tutorial" {...field} />
+                  <TagsInput
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="e.g. technology, tutorial"
+                  />
                 </FormControl>
                 <FormDescription>
-                  Enter a tag for your document (currently supports one tag)
+                  Type a tag and press Enter (multiple tags supported)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
