@@ -10,6 +10,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import "@blocknote/mantine/style.css";
+import { lingoDotDev } from '@/lib/lingo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -50,7 +51,6 @@ export default function DocumentPage({ params }: PageProps) {
     fetchDocument();
   }, [resolvedParams.slug, router]);
 
-  // Parse BlockNote content
   const initialBlocks = useMemo(() => {
     if (!doc?.content || !isMounted) return undefined;
     try {
@@ -71,6 +71,21 @@ export default function DocumentPage({ params }: PageProps) {
     } : undefined,
     [initialBlocks, isMounted]
   );
+  const initLingo = async () => {
+    const translated = await lingoDotDev.localizeHtml(doc.content, {
+      sourceLocale: "en",
+      targetLocale: "es",
+    });
+    setDoc({
+      ...doc,
+      content: translated
+    })
+  }
+
+  useEffect(() => {
+    initLingo()
+  }, [])
+
 
   if (isLoading || !isMounted || !editor) {
     return (
@@ -160,7 +175,7 @@ export default function DocumentPage({ params }: PageProps) {
             {/* Tags */}
             {doc.tags && doc.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4">
-                {doc.tags.map((tag:string, index:number) => (
+                {doc.tags.map((tag: string, index: number) => (
                   <span
                     key={index}
                     className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium"
