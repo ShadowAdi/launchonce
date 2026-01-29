@@ -85,7 +85,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   };
 
   const handleEdit = () => {
-    router.push(`/${document?.id}/edit`);
+    router.push(`${document?.id}/edit`);
   };
 
   const handleCopyLink = async () => {
