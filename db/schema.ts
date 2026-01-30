@@ -56,7 +56,7 @@ export const forms = pgTable("forms", {
 });
 
 
-export const form_fields = pgTable("form_fields", {
+export const formFields = pgTable("form_fields", {
     id: uuid("id").defaultRandom().primaryKey(),
     formId: uuid("form_id").references(() => forms.id, { onDelete: "cascade" }).notNull(),
 
@@ -81,4 +81,18 @@ export const formResponses = pgTable("form_responses", {
   isPublic: boolean("is_public").notNull().default(false),
 
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const formAnswers = pgTable("form_answers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  responseId: uuid("response_id")
+    .references(() => formResponses.id, { onDelete: "cascade" })
+    .notNull(),
+
+  fieldId: uuid("field_id")
+    .references(() => formFields.id, { onDelete: "cascade" })
+    .notNull(),
+
+  value: text("value").notNull(),
 });
