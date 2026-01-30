@@ -70,3 +70,15 @@ export const form_fields = pgTable("form_fields", {
     createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
 })
+
+export const formResponses = pgTable("form_responses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  formId: uuid("form_id")
+    .references(() => forms.id, { onDelete: "cascade" })
+    .notNull(),
+
+  isPublic: boolean("is_public").notNull().default(false),
+
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
