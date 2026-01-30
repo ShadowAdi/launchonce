@@ -8,6 +8,13 @@
       "when": 1769787749209,
       "tag": "0000_natural_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769799560409,
+      "tag": "0001_closed_micromacro",
+      "breakpoints": true
     }
   ]
 }
