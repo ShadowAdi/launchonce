@@ -1,27 +1,80 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import { getDocumentBySlug } from "@/actions/document.action";
 import { getTranslatedHtmlBySlug } from "@/actions/translation.action";
 import { LanguageSelector } from "@/components/global/LanguageSelector";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import { PartialBlock } from "@blocknote/core";
+
+const BlockNoteEditor = dynamic(
+  () => import("@/components/global/BlockNoteEditor"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse space-y-3 pt-8">
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded w-5/6"></div>
+      </div>
+    ),
+  }
+);
 
 interface PageProps {
   params: Promise<{ slug: string; lang: string }>;
 }
 
-export default async function DocumentTranslatedPage({ params }: PageProps) {
-  const { slug, lang } = await params;
+export default function DocumentTranslatedPage({ params }: PageProps) {
+  const resolvedParams = use(params);
+  const [doc, setDoc] = useState<any>(null);
+  const [translatedBlocks, setTranslatedBlocks] = useState<PartialBlock[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const result = await getDocumentBySlug(slug);
-  if (!result.success || !result.data) {
-    // In a real app, use notFound() or redirect
-    return null;
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getDocumentBySlug(resolvedParams.slug);
+        if (!result.success || !result.data) {
+          return;
+        }
+        setDoc(result.data);
+
+        const translated = await getTranslatedHtmlBySlug(
+          resolvedParams.slug,
+          resolvedParams.lang,
+          "en"
+        );
+
+        if (translated.success && translated.data?.blocks) {
+          setTranslatedBlocks(JSON.parse(translated.data.blocks));
+        }
+      } catch (error) {
+        console.error("Error fetching translation:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [resolvedParams.slug, resolvedParams.lang]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="animate-pulse space-y-8">
+            <div className="h-12 bg-muted rounded w-3/4"></div>
+            <div className="h-6 bg-muted rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const doc = result.data;
-
-  const translated = await getTranslatedHtmlBySlug(slug, lang, "en");
-  const translatedHtml = translated.success && translated.data ? translated.data.html : null;
-
-  const cleanHtml = translatedHtml?.replace(/<\/?(html|body)[^>]*>/g, "");
+  if (!doc) return null;
 
 
   return (
@@ -53,7 +106,7 @@ export default async function DocumentTranslatedPage({ params }: PageProps) {
                   <div className="font-medium text-foreground">{doc.userName}</div>
                 </div>
               </div>
-              <LanguageSelector slug={doc.slug} currentLang={lang} />
+              <LanguageSelector slug={doc.slug} currentLang={resolvedParams.lang} />
             </div>
 
             {doc.tags && doc.tags.length > 0 && (
@@ -74,22 +127,8 @@ export default async function DocumentTranslatedPage({ params }: PageProps) {
           </div>
         )}
 
-        {translatedHtml && cleanHtml ? (
-          <div 
-            className="prose prose-lg prose-slate dark:prose-invert max-w-none
-              prose-headings:font-bold prose-headings:tracking-tight
-              prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
-              prose-p:text-base prose-p:leading-7 prose-p:mb-4
-              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-              prose-strong:font-semibold prose-strong:text-foreground
-              prose-code:text-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-              prose-pre:bg-muted prose-pre:border prose-pre:border-border
-              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
-              prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
-              prose-li:my-1 prose-img:rounded-lg prose-img:shadow-md
-              prose-table:border-collapse prose-table:w-full prose-td:border prose-td:p-2 prose-th:border prose-th:p-2"
-            dangerouslySetInnerHTML={{ __html: cleanHtml }} 
-          />
+        {translatedBlocks ? (
+          <BlockNoteEditor initialContent={translatedBlocks} editable={false} />
         ) : (
           <p className="text-muted-foreground">Translation unavailable.</p>
         )}

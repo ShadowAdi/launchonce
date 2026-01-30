@@ -34,6 +34,7 @@ export const translations = pgTable("translations", {
     locale: varchar("locale", { length: 20 }).notNull(),
     sourceLocale: varchar("source_locale", { length: 20 }).notNull(),
     html: text("html").notNull(),
+    translatedBlocks: text("translated_blocks"), // Store translated BlockNote JSON
     contentHash: varchar("content_hash", { length: 128 }).notNull(),
     createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())

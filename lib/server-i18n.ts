@@ -208,7 +208,7 @@ export async function translateBlocksJsonToHtml(opts: {
 	blocksJson: string;
 	sourceLocale: string;
 	targetLocale: string;
-}): Promise<{ html: string }>
+}): Promise<{ html: string; translatedBlocks?: string }>
 {
 	const { slug, documentId, blocksJson, sourceLocale, targetLocale } = opts;
 
@@ -222,29 +222,61 @@ export async function translateBlocksJsonToHtml(opts: {
 		.limit(1);
 
 	if (cached.length > 0 && cached[0].contentHash === contentHash) {
-		return { html: cached[0].html as string };
+		return { 
+			html: cached[0].html as string,
+			translatedBlocks: cached[0].translatedBlocks as string | undefined
+		};
 	}
 
-	// Convert JSON -> HTML (lossy, server-safe)
-	const html = blocksJsonToHtmlLossy(blocksJson);
+	// Parse original blocks
+	const blocks = JSON.parse(blocksJson);
 
-	// Wrap in article tag to give lingo.dev better context about document structure
-	const wrappedHtml = `<article>${html}</article>`;
+	// Translate each block's content individually to preserve structure
+	const translatedBlocks = await Promise.all(
+		blocks.map(async (block: any) => {
+			const translatedBlock = { ...block };
+			
+			// Translate text content in the block
+			if (Array.isArray(block.content)) {
+				translatedBlock.content = await Promise.all(
+					block.content.map(async (item: any) => {
+						if (item.type === "text" && item.text) {
+							const translatedText = await lingoDotDev.localizeText(item.text, {
+								sourceLocale,
+								targetLocale,
+							});
+							return { ...item, text: translatedText };
+						}
+						return item;
+					})
+				);
+			}
+			
+			// Recursively translate children
+			if (Array.isArray(block.children) && block.children.length > 0) {
+				translatedBlock.children = await Promise.all(
+					block.children.map(async (child: any) => {
+						// Recursively handle nested blocks
+						const childBlocks = await translateBlocksJsonToHtml({
+							slug,
+							documentId,
+							blocksJson: JSON.stringify([child]),
+							sourceLocale,
+							targetLocale,
+						});
+						return JSON.parse(childBlocks.translatedBlocks || "[]")[0];
+					})
+				);
+			}
+			
+			return translatedBlock;
+		})
+	);
 
-	console.log("Original HTML before translation:", wrappedHtml.substring(0, 500));
+	const translatedBlocksJson = JSON.stringify(translatedBlocks);
 
-	// Translate HTML via lingo.dev (server-side only)
-	const localized = await lingoDotDev.localizeHtml(wrappedHtml, {
-		sourceLocale,
-		targetLocale,
-	});
-
-	console.log("Raw translated HTML from Lingo:", localized.substring(0, 500));
-
-	// Strip any HTML document wrappers that lingo.dev might add
-	const cleanedHtml = stripHtmlDocumentWrapper(localized);
-
-	console.log("Cleaned translated HTML:", cleanedHtml.substring(0, 500));
+	// Also generate HTML for fallback
+	const html = blocksJsonToHtmlLossy(translatedBlocksJson);
 
 	// Upsert cache
 	const existing = cached[0];
@@ -252,7 +284,8 @@ export async function translateBlocksJsonToHtml(opts: {
 		await db
 			.update(translations)
 			.set({
-				html: cleanedHtml,
+				html,
+				translatedBlocks: translatedBlocksJson,
 				contentHash,
 				sourceLocale,
 			})
@@ -263,10 +296,11 @@ export async function translateBlocksJsonToHtml(opts: {
 			slug,
 			locale: targetLocale,
 			sourceLocale,
-			html: cleanedHtml,
+			html,
+			translatedBlocks: translatedBlocksJson,
 			contentHash,
 		});
 	}
 
-	return { html: cleanedHtml };
+	return { html, translatedBlocks: translatedBlocksJson };
 }

@@ -10,7 +10,7 @@ export const getTranslatedHtmlBySlug = async (
   slug: string,
   targetLocale: string,
   sourceLocale: string = "en"
-): Promise<ActionResponse<{ html: string; meta: { slug: string; locale: string } }>> => {
+): Promise<ActionResponse<{ html: string; blocks?: string; meta: { slug: string; locale: string } }>> => {
   try {
     const result = await db
       .select()
@@ -24,7 +24,7 @@ export const getTranslatedHtmlBySlug = async (
 
     const doc = result[0];
 
-    const { html } = await translateBlocksJsonToHtml({
+    const { html, translatedBlocks } = await translateBlocksJsonToHtml({
       slug: doc.slug as string,
       documentId: doc.id as string,
       blocksJson: doc.content as string,
@@ -34,7 +34,11 @@ export const getTranslatedHtmlBySlug = async (
 
     return {
       success: true,
-      data: { html, meta: { slug: doc.slug as string, locale: targetLocale } },
+      data: { 
+        html, 
+        blocks: translatedBlocks,
+        meta: { slug: doc.slug as string, locale: targetLocale } 
+      },
     };
   } catch (error) {
     console.error("Failed to translate document:", error);
