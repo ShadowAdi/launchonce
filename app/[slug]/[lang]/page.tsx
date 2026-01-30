@@ -4,11 +4,11 @@ import { LanguageSelector } from "@/components/global/LanguageSelector";
 import Image from "next/image";
 
 interface PageProps {
-  params: { slug: string; lang: string };
+  params: Promise<{ slug: string; lang: string }>;
 }
 
 export default async function DocumentTranslatedPage({ params }: PageProps) {
-  const { slug, lang } = params;
+  const { slug, lang } = await params;
 
   const result = await getDocumentBySlug(slug);
   if (!result.success || !result.data) {
@@ -33,24 +33,24 @@ export default async function DocumentTranslatedPage({ params }: PageProps) {
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`${doc.coverImage ? "-mt-32 relative z-10" : "pt-20"} pb-8`}>
           <div className="space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight flex-1">
-                {doc.title}
-              </h1>
-              <LanguageSelector slug={doc.slug} currentLang={lang} />
-            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+              {doc.title}
+            </h1>
             {doc.subtitle && (
               <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
                 {doc.subtitle}
               </p>
             )}
-            <div className="flex items-center gap-4 py-6">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-semibold">
-                {doc.userName.charAt(0).toUpperCase()}
+            <div className="flex items-center justify-between gap-4 py-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-semibold">
+                  {doc.userName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-medium text-foreground">{doc.userName}</div>
+                </div>
               </div>
-              <div>
-                <div className="font-medium text-foreground">{doc.userName}</div>
-              </div>
+              <LanguageSelector slug={doc.slug} currentLang={lang} />
             </div>
 
             {doc.tags && doc.tags.length > 0 && (
