@@ -5,11 +5,25 @@ import { getDocumentBySlug } from '@/actions/document.action';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Eye } from 'lucide-react';
-import { BlockNoteView } from "@blocknote/mantine";
-import { useCreateBlockNote } from "@blocknote/react";
+import dynamic from 'next/dynamic';
 import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import "@blocknote/mantine/style.css";
+
+// Dynamic import to prevent SSR issues with BlockNote
+const BlockNoteEditor = dynamic(
+  () => import('@/components/global/BlockNoteEditor'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse space-y-3 pt-8">
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded w-5/6"></div>
+      </div>
+    )
+  }
+);
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -66,17 +80,9 @@ export default function DocumentPage({ params }: PageProps) {
     }
   }, [doc?.content, isMounted]);
 
-  const editor = useCreateBlockNote(
-    isMounted ? {
-      initialContent: initialBlocks,
-    } : undefined,
-    [initialBlocks, isMounted]
-  );
-
-
   // Removed client-side translation. SEO-friendly translations are served from server routes.
 
-  if (isLoading || !isMounted || !editor) {
+  if (isLoading || !isMounted) {
     return (
       <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -182,8 +188,7 @@ export default function DocumentPage({ params }: PageProps) {
           </div>
         )}
 
-
-        <BlockNoteView editor={editor} editable={false} />
+        {initialBlocks && <BlockNoteEditor initialContent={initialBlocks} editable={false} />}
       </article>
 
       {/* Footer */}

@@ -7,12 +7,12 @@ import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
 
 interface BlockNoteEditorProps {
-  onChange: (value: string) => void;
-  initialContent?: string;
+  onChange?: (value: string) => void;
+  initialContent?: string | PartialBlock[];
   editable?: boolean;
 }
 
-export function BlockNoteEditorComponent({
+export default function BlockNoteEditorComponent({
   onChange,
   initialContent,
   editable = true,
@@ -20,6 +20,13 @@ export function BlockNoteEditorComponent({
   // Parse initial content
   const initialBlocks = useMemo(() => {
     if (!initialContent) return undefined;
+    
+    // If it's already an array of blocks, use it directly
+    if (Array.isArray(initialContent)) {
+      return initialContent as PartialBlock[];
+    }
+    
+    // If it's a string, try to parse it
     try {
       return JSON.parse(initialContent) as PartialBlock[];
     } catch {
@@ -40,7 +47,7 @@ export function BlockNoteEditorComponent({
 
   // Update content on change
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !onChange) return;
 
     const handleChange = () => {
       const blocks = editor.document;
@@ -56,8 +63,8 @@ export function BlockNoteEditorComponent({
   }
 
   return (
-    <div className="border rounded-md overflow-hidden">
       <BlockNoteView editor={editor} editable={editable} theme="light" />
-    </div>
   );
 }
+
+export { BlockNoteEditorComponent };
