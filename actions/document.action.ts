@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db/db";
-import { document, formFields, forms, translations, users } from "@/db/schema";
+import { document, formAnswers, formFields, formResponses, forms, translations, users } from "@/db/schema";
 import { ActionResponse } from "@/types/action-response";
 import { CreateDocumentDto, GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
 import {
@@ -255,27 +255,24 @@ export const getDocumentById = async (docId: string, userId: string): Promise<Ac
 // Delete document
 export const deleteDocument = async (docId: string, userId: string): Promise<ActionResponse<{ message: string }>> => {
     try {
-        const existingDoc = await db
-            .select()
-            .from(document)
-            .where(and(eq(document.id, docId), eq(document.userId, userId)))
-            .limit(1);
+        const result = await db.transaction(async (tx) => {
+            const existingDoc = await tx
+                .select({ id: document.id })
+                .from(document)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .limit(1);
 
-        if (existingDoc.length === 0) {
-            return {
-                success: false,
-                error: "Document not found or you don't have permission to update it"
-            };
-        }
-        const doc = existingDoc[0];
-        await db
-            .delete(translations)
-            .where(eq(translations.slug, doc.slug))
-            .returning({ id: document.id });
-        const result = await db
-            .delete(document)
-            .where(and(eq(document.id, docId), eq(document.userId, userId)))
-            .returning({ id: document.id });
+            if (existingDoc.length === 0) {
+                throw new Error("NOT_FOUND");
+            }
+
+            const deleted = await tx
+                .delete(document)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .returning({ id: document.id });
+
+            return deleted;
+        });
 
         if (result.length === 0) {
             return {
@@ -290,14 +287,17 @@ export const deleteDocument = async (docId: string, userId: string): Promise<Act
         };
     } catch (error) {
         console.error(`Failed to delete document:`, error);
-
-        if (error instanceof Error) {
-            if (error.message.includes("connection")) {
-                return {
-                    success: false,
-                    error: "Database connection failed. Please try again later"
-                };
-            }
+        if (error instanceof Error && error.message === "NOT_FOUND") {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to delete it",
+            };
+        }
+        if (error instanceof Error && error.message.includes("connection")) {
+            return {
+                success: false,
+                error: "Database connection failed. Please try again later",
+            };
         }
 
         return {
