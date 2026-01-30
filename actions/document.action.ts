@@ -4,7 +4,14 @@ import { db } from "@/db/db";
 import { document, formFields, forms, translations, users } from "@/db/schema";
 import { ActionResponse } from "@/types/action-response";
 import { CreateDocumentDto, GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { and, eq } from "drizzle-orm";
+import {
+    DocumentUpdateDto,
+    UpdateFormDto,
+    UpdateFormFieldsDto,
+    FormFieldCreateDto,
+    FormFieldUpdateDto,
+} from "@/types/docuement/update-document.dto";
+import { and, eq, inArray } from "drizzle-orm";
 
 export const createDocument = async (payload: CreateDocumentDto, userId: string): Promise<ActionResponse<{
     id: string;
@@ -78,10 +85,10 @@ export const createDocument = async (payload: CreateDocumentDto, userId: string)
         })
 
         return {
-            success:true,
-            data:{
-                id:result.id,
-                title:result.title
+            success: true,
+            data: {
+                id: result.id,
+                title: result.title
             }
         }
     } catch (error) {
@@ -307,57 +314,296 @@ export const updateDocument = async (
     payload: Partial<CreateDocumentDto>
 ): Promise<ActionResponse<{ id: string; title: string }>> => {
     try {
-        // Check if document exists and belongs to user
-        const existingDoc = await db
-            .select()
-            .from(document)
-            .where(and(eq(document.id, docId), eq(document.userId, userId)))
-            .limit(1);
+        const result = await db.transaction(async (tx) => {
+            const [existingDoc] = await tx
+                .select({ id: document.id })
+                .from(document)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .limit(1);
 
-        if (existingDoc.length === 0) {
-            return {
-                success: false,
-                error: "Document not found or you don't have permission to update it"
-            };
-        }
+            if (!existingDoc) {
+                throw new Error("NOT_FOUND");
+            }
 
-        // Update slug if title is changed
-        const updateData: any = { ...payload };
-        if (payload.title) {
-            updateData.slug = payload.title.split(" ")[0].toLowerCase();
-        }
+            const { form, ...documentPayload } = payload;
 
-        const [updatedDoc] = await db
-            .update(document)
-            .set(updateData)
-            .where(and(eq(document.id, docId), eq(document.userId, userId)))
-            .returning({
-                id: document.id,
-                title: document.title
-            });
+            const updateData: any = { ...documentPayload };
+
+            if (payload.title) {
+                updateData.slug = payload.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/(^-|-$)/g, "");
+            }
+
+            const [updatedDoc] = await tx
+                .update(document)
+                .set(updateData)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .returning({
+                    id: document.id,
+                    title: document.title,
+                });
+
+            if (form) {
+                const [existingForm] = await tx
+                    .select({ id: forms.id })
+                    .from(forms)
+                    .where(eq(forms.documentId, docId))
+                    .limit(1);
+
+                if (existingForm) {
+                    // Update form metadata
+                    await tx.update(forms).set({
+                        title: form.title,
+                        description: form.description,
+                        listResponsesPublicly: form.listResponsesPublicly,
+                        isEnabled: form.isEnabled,
+                    }).where(eq(forms.id, existingForm.id));
+                } else {
+                    const [newForm] = await tx
+                        .insert(forms)
+                        .values({
+                            documentId: docId,
+                            title: form.title ?? "Responses",
+                            description: form.description ?? null,
+                            listResponsesPublicly: form.listResponsesPublicly ?? false,
+                            isEnabled: form.isEnabled ?? false,
+                        })
+                        .returning({ id: forms.id });
+                    if (form.fields && form.fields.length > 0) {
+                        await tx.insert(formFields).values(
+                            form.fields.map((f) => ({
+                                formId: newForm.id,
+                                label: f.label,
+                                description: f.description ?? null,
+                                type: f.type,
+                                required: f.required ?? false,
+                                options: f.options ?? null,
+                                order: f.order,
+                            }))
+                        );
+                    }
+                }
+            }
+
+            return updatedDoc;
+        });
 
         return {
             success: true,
-            data: updatedDoc
+            data: result,
         };
     } catch (error) {
-        console.error(`Failed to update document:`, error);
-
-        if (error instanceof Error) {
-            if (error.message.includes("connection")) {
-                return {
-                    success: false,
-                    error: "Database connection failed. Please try again later"
-                };
-            }
+        if (error instanceof Error && error.message === "NOT_FOUND") {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it",
+            };
         }
+
+        console.error("Failed to update document:", error);
 
         return {
             success: false,
-            error: "Failed to update document. Please try again"
+            error: "Failed to update document. Please try again",
         };
     }
-}
+};
+
+export const updateFormMeta = async (
+    docId: string,
+    userId: string,
+    payload: UpdateFormDto
+): Promise<ActionResponse<{ id: string }>> => {
+    try {
+        const result = await db.transaction(async (tx) => {
+            const [docRow] = await tx
+                .select({ id: document.id })
+                .from(document)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .limit(1);
+
+            if (!docRow) throw new Error("NOT_FOUND");
+
+            const [formRow] = await tx
+                .select({ id: forms.id })
+                .from(forms)
+                .where(eq(forms.documentId, docId))
+                .limit(1);
+
+            if (!formRow) {
+                const [createdForm] = await tx
+                    .insert(forms)
+                    .values({
+                        documentId: docId,
+                        title: payload.title ?? "Responses",
+                        description: payload.description ?? null,
+                        isEnabled: payload.isEnabled ?? false,
+                        listResponsesPublicly: payload.listResponsesPublicly ?? false,
+                    })
+                    .returning({ id: forms.id });
+                return createdForm;
+            }
+
+            const updateSet: Partial<{
+                title: string;
+                description: string | null;
+                isEnabled: boolean;
+                listResponsesPublicly: boolean;
+            }> = {};
+            if (payload.title !== undefined) updateSet.title = payload.title as string;
+            if (payload.description !== undefined) updateSet.description = payload.description ?? null;
+            if (payload.isEnabled !== undefined) updateSet.isEnabled = payload.isEnabled;
+            if (payload.listResponsesPublicly !== undefined)
+                updateSet.listResponsesPublicly = payload.listResponsesPublicly;
+
+            const [updated] = await tx
+                .update(forms)
+                .set(updateSet)
+                .where(eq(forms.id, formRow.id))
+                .returning({ id: forms.id });
+            return updated;
+        });
+
+        return { success: true, data: result };
+    } catch (error) {
+        if (error instanceof Error && error.message === "NOT_FOUND") {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it",
+            };
+        }
+        console.error("Failed to update form:", error);
+        return { success: false, error: "Failed to update form. Please try again" };
+    }
+};
+
+export const updateFormFields = async (
+    docId: string,
+    userId: string,
+    payload: UpdateFormFieldsDto
+): Promise<
+    ActionResponse<{
+        formId: string;
+        updatedCount: number;
+        createdCount: number;
+        deletedCount: number;
+    }>
+> => {
+    try {
+        const res = await db.transaction(async (tx) => {
+            const [docRow] = await tx
+                .select({ id: document.id })
+                .from(document)
+                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+                .limit(1);
+            if (!docRow) throw new Error("NOT_FOUND");
+
+            let [formRow] = await tx
+                .select({ id: forms.id })
+                .from(forms)
+                .where(eq(forms.documentId, docId))
+                .limit(1);
+
+            if (!formRow) {
+                if (!payload.formMetaIfMissing) throw new Error("FORM_MISSING");
+                const [createdForm] = await tx
+                    .insert(forms)
+                    .values({
+                        documentId: docId,
+                        title: payload.formMetaIfMissing.title,
+                        description: payload.formMetaIfMissing.description ?? null,
+                        isEnabled: payload.formMetaIfMissing.isEnabled ?? false,
+                        listResponsesPublicly:
+                            payload.formMetaIfMissing.listResponsesPublicly ?? false,
+                    })
+                    .returning({ id: forms.id });
+                formRow = createdForm;
+            }
+
+            let updatedCount = 0;
+            let createdCount = 0;
+            let deletedCount = 0;
+
+            if (payload.updates && payload.updates.length > 0) {
+                for (const u of payload.updates) {
+                    const setObj: Partial<{
+                        label: string;
+                        description: string | null;
+                        type: FormFieldCreateDto["type"];
+                        required: boolean;
+                        options: unknown | null;
+                        order: number;
+                    }> = {};
+                    if (u.label !== undefined) setObj.label = u.label;
+                    if (u.description !== undefined) setObj.description = u.description ?? null;
+                    if (u.type !== undefined) setObj.type = u.type;
+                    if (u.required !== undefined) setObj.required = u.required;
+                    if (u.options !== undefined) setObj.options = u.options ?? null;
+                    if (u.order !== undefined) setObj.order = u.order;
+
+                    const res = await tx
+                        .update(formFields)
+                        .set(setObj)
+                        .where(and(eq(formFields.id, u.id), eq(formFields.formId, formRow.id)))
+                        .returning({ id: formFields.id });
+                    if (res.length > 0) updatedCount += 1;
+                }
+            }
+
+            if (payload.creates && payload.creates.length > 0) {
+                await tx.insert(formFields).values(
+                    payload.creates.map((c) => ({
+                        formId: formRow.id,
+                        label: c.label,
+                        description: c.description ?? null,
+                        type: c.type,
+                        required: c.required ?? false,
+                        options: c.options ?? null,
+                        order: c.order,
+                    }))
+                );
+                createdCount = payload.creates.length;
+            }
+
+            if (payload.deletes && payload.deletes.length > 0) {
+                const resDel = await tx
+                    .delete(formFields)
+                    .where(and(eq(formFields.formId, formRow.id), inArray(formFields.id, payload.deletes)))
+                    .returning({ id: formFields.id });
+                deletedCount = resDel.length;
+            }
+
+            return {
+                formId: formRow.id as string,
+                updatedCount,
+                createdCount,
+                deletedCount,
+            };
+        });
+
+        return { success: true, data: res };
+    } catch (error) {
+        if (error instanceof Error && error.message === "NOT_FOUND") {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it",
+            };
+        }
+        if (error instanceof Error && error.message === "FORM_MISSING") {
+            return {
+                success: false,
+                error: "Form not found. Provide formMetaIfMissing to create one.",
+            };
+        }
+        console.error("Failed to update form fields:", error);
+        return {
+            success: false,
+            error: "Failed to update form fields. Please try again",
+        };
+    }
+};
 
 // Increase view count
 export const increaseViewCount = async (docId: string): Promise<ActionResponse<{ viewCount: number }>> => {
