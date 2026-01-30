@@ -21,6 +21,8 @@ export default function DocumentPage({ params }: PageProps) {
   const [doc, setDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [translatedHtml, setTranslatedHtml] = useState<string | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -71,21 +73,24 @@ export default function DocumentPage({ params }: PageProps) {
     } : undefined,
     [initialBlocks, isMounted]
   );
-  // const initLingo = async () => {
-  //   const translated = await lingoDotDev.localizeHtml(doc.content, {
-  //     sourceLocale: "en",
-  //     targetLocale: "es",
-  //   });
-  //   setDoc({
-  //     ...doc,
-  //     content: translated
-  //   })
-  // }
 
-  // useEffect(() => {
-  //   initLingo()
-  // }, [])
 
+  useEffect(() => {
+    if (!editor || !doc) return;
+
+    const translate = async () => {
+      const html = await editor.blocksToHTMLLossy();
+
+      const localized = await lingoDotDev.localizeHtml(html, {
+        sourceLocale: "en",
+        targetLocale: "es",
+      });
+
+      setTranslatedHtml(localized);
+    };
+
+    translate();
+  }, [editor, doc]);
 
   if (isLoading || !isMounted || !editor) {
     return (
@@ -194,13 +199,14 @@ export default function DocumentPage({ params }: PageProps) {
         )}
 
 
-        <div className="py-12 pb-20">
-          <BlockNoteView
-            editor={editor}
-            editable={false}
-            theme="light"
+        {translatedHtml ? (
+          <div
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: translatedHtml }}
           />
-        </div>
+        ) : (
+          <BlockNoteView editor={editor} editable={false} />
+        )}
       </article>
 
       {/* Footer */}
