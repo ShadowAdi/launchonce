@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -47,13 +47,23 @@ export const forms = pgTable("forms", {
     title: varchar("title", { length: 225 }).notNull(),
     description: text("description"),
 
-    isResponsePublic: boolean("is_response_public").default(false),
-    isEnabled: boolean("is_enabled").notNull().default(true),
+    listResponsesPublicly: boolean("list_responses_publicly").default(false),
+    isEnabled: boolean("is_enabled").notNull().default(false),
 
     createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
 
 });
+
+
+export const formFieldType = pgEnum("form_field_type", [
+  "short_text",
+  "long_text",
+  "select",
+  "boolean",
+  "email",
+  "url",
+]);
 
 
 export const formFields = pgTable("form_fields", {
@@ -62,14 +72,17 @@ export const formFields = pgTable("form_fields", {
 
     label: varchar("label", { length: 225 }).notNull(),
     description: text("description"),
-    type: varchar("type", { length: 50 }).notNull(),
+    type: formFieldType("type").notNull(),
 
     required: boolean("required").notNull().default(false),
     options: jsonb("options"),
     order: integer("order").notNull(),
     createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
-})
+}, (t) => ({
+  formOrderIdx: index("form_fields_form_order_idx").on(t.formId, t.order),
+  formOrderUnique: uniqueIndex("form_fields_form_order_unique").on(t.formId, t.order),
+}))
 
 export const formResponses = pgTable("form_responses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -81,7 +94,9 @@ export const formResponses = pgTable("form_responses", {
   isPublic: boolean("is_public").notNull().default(false),
 
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+}, (t) => ({
+  formPublicIdx: index("form_responses_form_public_idx").on(t.formId, t.isPublic),
+}));
 
 export const formAnswers = pgTable("form_answers", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -95,4 +110,7 @@ export const formAnswers = pgTable("form_answers", {
     .notNull(),
 
   value: text("value").notNull(),
-});
+}, (t) => ({
+  responseFieldUnique: uniqueIndex("form_answers_response_field_unique").on(t.responseId, t.fieldId),
+  answersResponseIdx: index("form_answers_response_idx").on(t.responseId),
+}));
