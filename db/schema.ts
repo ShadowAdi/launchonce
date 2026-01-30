@@ -29,7 +29,7 @@ export const document = pgTable("docuements", {
 // Cache of translated HTML per document & locale
 export const translations = pgTable("translations", {
     id: uuid("id").defaultRandom().primaryKey(),
-    documentId: uuid("document_id").references(() => document.id).notNull(),
+    documentId: uuid("document_id").references(() => document.id, { onDelete: "cascade" }).notNull(),
     slug: varchar("slug", { length: 255 }).notNull(),
     locale: varchar("locale", { length: 20 }).notNull(),
     sourceLocale: varchar("source_locale", { length: 20 }).notNull(),
