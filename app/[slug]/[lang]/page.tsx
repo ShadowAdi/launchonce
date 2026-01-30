@@ -21,6 +21,9 @@ export default async function DocumentTranslatedPage({ params }: PageProps) {
   const translated = await getTranslatedHtmlBySlug(slug, lang, "en");
   const translatedHtml = translated.success && translated.data ? translated.data.html : null;
 
+  const cleanHtml = translatedHtml?.replace(/<\/?(html|body)[^>]*>/g, "");
+
+
   return (
     <main className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
       {doc.coverImage && (
@@ -71,8 +74,22 @@ export default async function DocumentTranslatedPage({ params }: PageProps) {
           </div>
         )}
 
-        {translatedHtml ? (
-          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: translatedHtml }} />
+        {translatedHtml && cleanHtml ? (
+          <div 
+            className="prose prose-lg prose-slate dark:prose-invert max-w-none
+              prose-headings:font-bold prose-headings:tracking-tight
+              prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
+              prose-p:text-base prose-p:leading-7 prose-p:mb-4
+              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+              prose-strong:font-semibold prose-strong:text-foreground
+              prose-code:text-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+              prose-pre:bg-muted prose-pre:border prose-pre:border-border
+              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
+              prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
+              prose-li:my-1 prose-img:rounded-lg prose-img:shadow-md
+              prose-table:border-collapse prose-table:w-full prose-td:border prose-td:p-2 prose-th:border prose-th:p-2"
+            dangerouslySetInnerHTML={{ __html: cleanHtml }} 
+          />
         ) : (
           <p className="text-muted-foreground">Translation unavailable.</p>
         )}

@@ -14,11 +14,52 @@ export function blocksJsonToHtmlLossy(json: string): string {
 			return `<p>${escapeHtml(String(json))}</p>`;
 		}
 
-		const html = blocks
-			.map((block) => renderBlock(block))
-			.join("\n");
+		// Group consecutive list items into proper list structures
+		const grouped: string[] = [];
+		let currentList: { type: string; items: string[] } | null = null;
 
-		return html;
+		for (const block of blocks) {
+			const type = block?.type;
+
+			if (type === "bulletListItem") {
+				if (currentList?.type !== "ul") {
+					if (currentList) {
+						grouped.push(`<${currentList.type}>${currentList.items.join("")}</${currentList.type}>`);
+					}
+					currentList = { type: "ul", items: [] };
+				}
+				currentList.items.push(renderBlock(block));
+			} else if (type === "numberedListItem") {
+				if (currentList?.type !== "ol") {
+					if (currentList) {
+						grouped.push(`<${currentList.type}>${currentList.items.join("")}</${currentList.type}>`);
+					}
+					currentList = { type: "ol", items: [] };
+				}
+				currentList.items.push(renderBlock(block));
+			} else if (type === "checkListItem") {
+				if (currentList?.type !== "ul-check") {
+					if (currentList) {
+						grouped.push(`<${currentList.type.replace("-check", "")}>${currentList.items.join("")}</${currentList.type.replace("-check", "")}>`);
+					}
+					currentList = { type: "ul-check", items: [] };
+				}
+				currentList.items.push(renderBlock(block));
+			} else {
+				if (currentList) {
+					grouped.push(`<${currentList.type.replace("-check", "")}>${currentList.items.join("")}</${currentList.type.replace("-check", "")}>`);
+					currentList = null;
+				}
+				grouped.push(renderBlock(block));
+			}
+		}
+
+		// Close any remaining list
+		if (currentList) {
+			grouped.push(`<${currentList.type.replace("-check", "")}>${currentList.items.join("")}</${currentList.type.replace("-check", "")}>`);
+		}
+
+		return grouped.join("\n");
 	} catch {
 		// Fallback: treat content as plain text paragraph
 		return `<p>${escapeHtml(String(json))}</p>`;

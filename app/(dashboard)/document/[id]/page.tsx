@@ -307,6 +307,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           <BlockNoteView
             editor={editor}
             editable={false}
+            className="px-0"
             theme="light"
           />
         </div>
