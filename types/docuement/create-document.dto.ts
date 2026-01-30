@@ -1,3 +1,5 @@
+import { CreateFormDto } from "../form/form-create.dto";
+
 export interface CreateDocumentDto {
     title: string;
     subtitle?: string;
@@ -6,6 +8,7 @@ export interface CreateDocumentDto {
     coverImage?: string;
     tags?: string[];
     visibility?: "draft" | "published";
+    form?: CreateFormDto;
 }
 
 export interface GetDocumentPublicDto {
