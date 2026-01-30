@@ -71,20 +71,20 @@ export default function DocumentPage({ params }: PageProps) {
     } : undefined,
     [initialBlocks, isMounted]
   );
-  const initLingo = async () => {
-    const translated = await lingoDotDev.localizeHtml(doc.content, {
-      sourceLocale: "en",
-      targetLocale: "es",
-    });
-    setDoc({
-      ...doc,
-      content: translated
-    })
-  }
+  // const initLingo = async () => {
+  //   const translated = await lingoDotDev.localizeHtml(doc.content, {
+  //     sourceLocale: "en",
+  //     targetLocale: "es",
+  //   });
+  //   setDoc({
+  //     ...doc,
+  //     content: translated
+  //   })
+  // }
 
-  useEffect(() => {
-    initLingo()
-  }, [])
+  // useEffect(() => {
+  //   initLingo()
+  // }, [])
 
 
   if (isLoading || !isMounted || !editor) {
@@ -133,8 +133,7 @@ export default function DocumentPage({ params }: PageProps) {
         </div>
       )}
 
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Title Section */}
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`${doc.coverImage ? '-mt-32 relative z-10' : 'pt-20'} pb-8`}>
           <div className="space-y-6">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
@@ -147,7 +146,6 @@ export default function DocumentPage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Author Card */}
             <div className="flex items-center gap-4 py-6">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-semibold">
                 {doc.userName.charAt(0).toUpperCase()}
@@ -172,7 +170,6 @@ export default function DocumentPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Tags */}
             {doc.tags && doc.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4">
                 {doc.tags.map((tag: string, index: number) => (
@@ -197,7 +194,6 @@ export default function DocumentPage({ params }: PageProps) {
         )}
 
 
-        {/* Content */}
         <div className="py-12 pb-20">
           <BlockNoteView
             editor={editor}
