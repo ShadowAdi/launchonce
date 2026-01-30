@@ -67,31 +67,37 @@ export const createDocument = async (
         title: document.title,
       });
 
+    // If form data provided, create form with cleanup on failure
     if (payload.form) {
-      const [createdForm] = await db
-        .insert(forms)
-        .values({
-          documentId: createdDocument.id,
-          title: payload.form.title,
-          description: payload.form.description ?? null,
-          listResponsesPublicly:
-            payload.form.listResponsesPublicly ?? false,
-          isEnabled: payload.form.isEnabled ?? false,
-        })
-        .returning({ id: forms.id });
+      try {
+        const [createdForm] = await db
+          .insert(forms)
+          .values({
+            documentId: createdDocument.id,
+            title: payload.form.title,
+            description: payload.form.description ?? null,
+            listResponsesPublicly: payload.form.listResponsesPublicly ?? false,
+            isEnabled: payload.form.isEnabled ?? false,
+          })
+          .returning({ id: forms.id });
 
-      if (payload.form.fields?.length > 0) {
-        await db.insert(formFields).values(
-          payload.form.fields.map((field) => ({
-            formId: createdForm.id,
-            label: field.label,
-            description: field.description ?? null,
-            type: field.type,
-            required: field.required ?? false,
-            options: field.options ?? null,
-            order: field.order,
-          }))
-        );
+        if (payload.form.fields?.length > 0) {
+          await db.insert(formFields).values(
+            payload.form.fields.map((field) => ({
+              formId: createdForm.id,
+              label: field.label,
+              description: field.description ?? null,
+              type: field.type,
+              required: field.required ?? false,
+              options: field.options ?? null,
+              order: field.order,
+            }))
+          );
+        }
+      } catch (formError) {
+        // Cleanup: delete document if form creation fails
+        await db.delete(document).where(eq(document.id, createdDocument.id));
+        throw formError;
       }
     }
 
@@ -329,24 +335,25 @@ export const getDocumentById = async (docId: string, userId: string): Promise<Ac
 // Delete document
 export const deleteDocument = async (docId: string, userId: string): Promise<ActionResponse<{ message: string }>> => {
     try {
-        const result = await db.transaction(async (tx) => {
-            const existingDoc = await tx
-                .select({ id: document.id })
-                .from(document)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
-                .limit(1);
+        // Check if document exists and user owns it
+        const existingDoc = await db
+            .select({ id: document.id })
+            .from(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .limit(1);
 
-            if (existingDoc.length === 0) {
-                throw new Error("NOT_FOUND");
-            }
+        if (existingDoc.length === 0) {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to delete it"
+            };
+        }
 
-            const deleted = await tx
-                .delete(document)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
-                .returning({ id: document.id });
-
-            return deleted;
-        });
+        // Delete document (CASCADE will handle related records)
+        const result = await db
+            .delete(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .returning({ id: document.id });
 
         if (result.length === 0) {
             return {
@@ -388,81 +395,87 @@ export const updateDocument = async (
     payload: Partial<CreateDocumentDto>
 ): Promise<ActionResponse<{ id: string; title: string }>> => {
     try {
-        const result = await db.transaction(async (tx) => {
-            const [existingDoc] = await tx
-                .select({ id: document.id })
-                .from(document)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
+        // Verify document exists and user owns it
+        const [existingDoc] = await db
+            .select({ id: document.id })
+            .from(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .limit(1);
+
+        if (!existingDoc) {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it",
+            };
+        }
+
+        const { form, ...documentPayload } = payload;
+
+        const updateData: any = { ...documentPayload };
+
+        if (payload.title) {
+            updateData.slug = payload.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-|-$)/g, "");
+        }
+
+        // Update document
+        const [updatedDoc] = await db
+            .update(document)
+            .set(updateData)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .returning({
+                id: document.id,
+                title: document.title,
+            });
+
+        // Handle form updates if provided
+        if (form) {
+            const [existingForm] = await db
+                .select({ id: forms.id })
+                .from(forms)
+                .where(eq(forms.documentId, docId))
                 .limit(1);
 
-            if (!existingDoc) {
-                throw new Error("NOT_FOUND");
-            }
-
-            const { form, ...documentPayload } = payload;
-
-            const updateData: any = { ...documentPayload };
-
-            if (payload.title) {
-                updateData.slug = payload.title
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "-")
-                    .replace(/(^-|-$)/g, "");
-            }
-
-            const [updatedDoc] = await tx
-                .update(document)
-                .set(updateData)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
-                .returning({
-                    id: document.id,
-                    title: document.title,
-                });
-
-            if (form) {
-                const [existingForm] = await tx
-                    .select({ id: forms.id })
-                    .from(forms)
-                    .where(eq(forms.documentId, docId))
-                    .limit(1);
-
-                if (existingForm) {
-                    // Update form metadata
-                    await tx.update(forms).set({
-                        title: form.title,
-                        description: form.description,
-                        listResponsesPublicly: form.listResponsesPublicly,
-                        isEnabled: form.isEnabled,
-                    }).where(eq(forms.id, existingForm.id));
-                } else {
-                    const [newForm] = await tx
-                        .insert(forms)
-                        .values({
-                            documentId: docId,
-                            title: form.title ?? "Responses",
-                            description: form.description ?? null,
-                            listResponsesPublicly: form.listResponsesPublicly ?? false,
-                            isEnabled: form.isEnabled ?? false,
-                        })
-                        .returning({ id: forms.id });
-                    if (form.fields && form.fields.length > 0) {
-                        await tx.insert(formFields).values(
-                            form.fields.map((f) => ({
-                                formId: newForm.id,
-                                label: f.label,
-                                description: f.description ?? null,
-                                type: f.type,
-                                required: f.required ?? false,
-                                options: f.options ?? null,
-                                order: f.order,
-                            }))
-                        );
-                    }
+            if (existingForm) {
+                // Update existing form metadata
+                await db.update(forms).set({
+                    title: form.title,
+                    description: form.description,
+                    listResponsesPublicly: form.listResponsesPublicly,
+                    isEnabled: form.isEnabled,
+                }).where(eq(forms.id, existingForm.id));
+            } else {
+                // Create new form
+                const [newForm] = await db
+                    .insert(forms)
+                    .values({
+                        documentId: docId,
+                        title: form.title ?? "Responses",
+                        description: form.description ?? null,
+                        listResponsesPublicly: form.listResponsesPublicly ?? false,
+                        isEnabled: form.isEnabled ?? false,
+                    })
+                    .returning({ id: forms.id });
+                    
+                if (form.fields && form.fields.length > 0) {
+                    await db.insert(formFields).values(
+                        form.fields.map((f) => ({
+                            formId: newForm.id,
+                            label: f.label,
+                            description: f.description ?? null,
+                            type: f.type,
+                            required: f.required ?? false,
+                            options: f.options ?? null,
+                            order: f.order,
+                        }))
+                    );
                 }
             }
+        }
 
-            return updatedDoc;
-        });
+        const result = updatedDoc;
 
         return {
             success: true,
@@ -491,35 +504,43 @@ export const updateFormMeta = async (
     payload: UpdateFormDto
 ): Promise<ActionResponse<{ id: string }>> => {
     try {
-        const result = await db.transaction(async (tx) => {
-            const [docRow] = await tx
-                .select({ id: document.id })
-                .from(document)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
-                .limit(1);
+        // Verify document exists and user owns it
+        const [docRow] = await db
+            .select({ id: document.id })
+            .from(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .limit(1);
 
-            if (!docRow) throw new Error("NOT_FOUND");
+        if (!docRow) {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it",
+            };
+        }
 
-            const [formRow] = await tx
-                .select({ id: forms.id })
-                .from(forms)
-                .where(eq(forms.documentId, docId))
-                .limit(1);
+        // Check if form exists
+        const [formRow] = await db
+            .select({ id: forms.id })
+            .from(forms)
+            .where(eq(forms.documentId, docId))
+            .limit(1);
 
-            if (!formRow) {
-                const [createdForm] = await tx
-                    .insert(forms)
-                    .values({
-                        documentId: docId,
-                        title: payload.title ?? "Responses",
-                        description: payload.description ?? null,
-                        isEnabled: payload.isEnabled ?? false,
-                        listResponsesPublicly: payload.listResponsesPublicly ?? false,
-                    })
-                    .returning({ id: forms.id });
-                return createdForm;
-            }
-
+        let result;
+        if (!formRow) {
+            // Create new form
+            const [createdForm] = await db
+                .insert(forms)
+                .values({
+                    documentId: docId,
+                    title: payload.title ?? "Responses",
+                    description: payload.description ?? null,
+                    isEnabled: payload.isEnabled ?? false,
+                    listResponsesPublicly: payload.listResponsesPublicly ?? false,
+                })
+                .returning({ id: forms.id });
+            result = createdForm;
+        } else {
+            // Update existing form
             const updateSet: Partial<{
                 title: string;
                 description: string | null;
@@ -532,13 +553,13 @@ export const updateFormMeta = async (
             if (payload.listResponsesPublicly !== undefined)
                 updateSet.listResponsesPublicly = payload.listResponsesPublicly;
 
-            const [updated] = await tx
+            const [updated] = await db
                 .update(forms)
                 .set(updateSet)
                 .where(eq(forms.id, formRow.id))
                 .returning({ id: forms.id });
-            return updated;
-        });
+            result = updated;
+        }
 
         return { success: true, data: result };
     } catch (error) {
@@ -566,96 +587,109 @@ export const updateFormFields = async (
     }>
 > => {
     try {
-        const res = await db.transaction(async (tx) => {
-            const [docRow] = await tx
-                .select({ id: document.id })
-                .from(document)
-                .where(and(eq(document.id, docId), eq(document.userId, userId)))
-                .limit(1);
-            if (!docRow) throw new Error("NOT_FOUND");
-
-            let [formRow] = await tx
-                .select({ id: forms.id })
-                .from(forms)
-                .where(eq(forms.documentId, docId))
-                .limit(1);
-
-            if (!formRow) {
-                if (!payload.formMetaIfMissing) throw new Error("FORM_MISSING");
-                const [createdForm] = await tx
-                    .insert(forms)
-                    .values({
-                        documentId: docId,
-                        title: payload.formMetaIfMissing.title,
-                        description: payload.formMetaIfMissing.description ?? null,
-                        isEnabled: payload.formMetaIfMissing.isEnabled ?? false,
-                        listResponsesPublicly:
-                            payload.formMetaIfMissing.listResponsesPublicly ?? false,
-                    })
-                    .returning({ id: forms.id });
-                formRow = createdForm;
-            }
-
-            let updatedCount = 0;
-            let createdCount = 0;
-            let deletedCount = 0;
-
-            if (payload.updates && payload.updates.length > 0) {
-                for (const u of payload.updates) {
-                    const setObj: Partial<{
-                        label: string;
-                        description: string | null;
-                        type: FormFieldCreateDto["type"];
-                        required: boolean;
-                        options: unknown | null;
-                        order: number;
-                    }> = {};
-                    if (u.label !== undefined) setObj.label = u.label;
-                    if (u.description !== undefined) setObj.description = u.description ?? null;
-                    if (u.type !== undefined) setObj.type = u.type;
-                    if (u.required !== undefined) setObj.required = u.required;
-                    if (u.options !== undefined) setObj.options = u.options ?? null;
-                    if (u.order !== undefined) setObj.order = u.order;
-
-                    const res = await tx
-                        .update(formFields)
-                        .set(setObj)
-                        .where(and(eq(formFields.id, u.id), eq(formFields.formId, formRow.id)))
-                        .returning({ id: formFields.id });
-                    if (res.length > 0) updatedCount += 1;
-                }
-            }
-
-            if (payload.creates && payload.creates.length > 0) {
-                await tx.insert(formFields).values(
-                    payload.creates.map((c) => ({
-                        formId: formRow.id,
-                        label: c.label,
-                        description: c.description ?? null,
-                        type: c.type,
-                        required: c.required ?? false,
-                        options: c.options ?? null,
-                        order: c.order,
-                    }))
-                );
-                createdCount = payload.creates.length;
-            }
-
-            if (payload.deletes && payload.deletes.length > 0) {
-                const resDel = await tx
-                    .delete(formFields)
-                    .where(and(eq(formFields.formId, formRow.id), inArray(formFields.id, payload.deletes)))
-                    .returning({ id: formFields.id });
-                deletedCount = resDel.length;
-            }
-
+        // Verify document exists and user owns it
+        const [docRow] = await db
+            .select({ id: document.id })
+            .from(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .limit(1);
+            
+        if (!docRow) {
             return {
-                formId: formRow.id as string,
-                updatedCount,
-                createdCount,
-                deletedCount,
+                success: false,
+                error: "Document not found or you don't have permission to update it",
             };
-        });
+        }
+
+        // Get or create form
+        let [formRow] = await db
+            .select({ id: forms.id })
+            .from(forms)
+            .where(eq(forms.documentId, docId))
+            .limit(1);
+
+        if (!formRow) {
+            if (!payload.formMetaIfMissing) {
+                return {
+                    success: false,
+                    error: "Form not found. Provide formMetaIfMissing to create one.",
+                };
+            }
+            const [createdForm] = await db
+                .insert(forms)
+                .values({
+                    documentId: docId,
+                    title: payload.formMetaIfMissing.title,
+                    description: payload.formMetaIfMissing.description ?? null,
+                    isEnabled: payload.formMetaIfMissing.isEnabled ?? false,
+                    listResponsesPublicly: payload.formMetaIfMissing.listResponsesPublicly ?? false,
+                })
+                .returning({ id: forms.id });
+            formRow = createdForm;
+        }
+
+        let updatedCount = 0;
+        let createdCount = 0;
+        let deletedCount = 0;
+
+        // Process updates
+        if (payload.updates && payload.updates.length > 0) {
+            for (const u of payload.updates) {
+                const setObj: Partial<{
+                    label: string;
+                    description: string | null;
+                    type: FormFieldCreateDto["type"];
+                    required: boolean;
+                    options: unknown | null;
+                    order: number;
+                }> = {};
+                if (u.label !== undefined) setObj.label = u.label;
+                if (u.description !== undefined) setObj.description = u.description ?? null;
+                if (u.type !== undefined) setObj.type = u.type;
+                if (u.required !== undefined) setObj.required = u.required;
+                if (u.options !== undefined) setObj.options = u.options ?? null;
+                if (u.order !== undefined) setObj.order = u.order;
+
+                const res = await db
+                    .update(formFields)
+                    .set(setObj)
+                    .where(and(eq(formFields.id, u.id), eq(formFields.formId, formRow.id)))
+                    .returning({ id: formFields.id });
+                if (res.length > 0) updatedCount += 1;
+            }
+        }
+
+        // Process creates
+        if (payload.creates && payload.creates.length > 0) {
+            await db.insert(formFields).values(
+                payload.creates.map((c) => ({
+                    formId: formRow.id,
+                    label: c.label,
+                    description: c.description ?? null,
+                    type: c.type,
+                    required: c.required ?? false,
+                    options: c.options ?? null,
+                    order: c.order,
+                }))
+            );
+            createdCount = payload.creates.length;
+        }
+
+        // Process deletes
+        if (payload.deletes && payload.deletes.length > 0) {
+            const resDel = await db
+                .delete(formFields)
+                .where(and(eq(formFields.formId, formRow.id), inArray(formFields.id, payload.deletes)))
+                .returning({ id: formFields.id });
+            deletedCount = resDel.length;
+        }
+
+        const res = {
+            formId: formRow.id as string,
+            updatedCount,
+            createdCount,
+            deletedCount,
+        };
 
         return { success: true, data: res };
     } catch (error) {
