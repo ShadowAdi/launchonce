@@ -8,6 +8,7 @@ import { Calendar, Eye } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
+import { LanguageSelector } from '@/components/global/LanguageSelector';
 import "@blocknote/mantine/style.css";
 
 // Dynamic import to prevent SSR issues with BlockNote
@@ -131,9 +132,12 @@ export default function DocumentPage({ params }: PageProps) {
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`${doc.coverImage ? '-mt-32 relative z-10' : 'pt-20'} pb-8`}>
           <div className="space-y-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-              {doc.title}
-            </h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight flex-1">
+                {doc.title}
+              </h1>
+              <LanguageSelector slug={doc.slug} currentLang="en" />
+            </div>
 
             {doc.subtitle && (
               <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
