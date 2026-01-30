@@ -173,6 +173,27 @@ function stripHtml(s: string): string {
 	return s.replace(/<[^>]+>/g, "");
 }
 
+// Strip HTML document wrapper tags that lingo.dev adds
+function stripHtmlDocumentWrapper(html: string): string {
+	// Remove <html>, <head>, <body> wrapper tags but keep the content
+	let cleaned = html;
+	
+	// Remove opening tags
+	cleaned = cleaned.replace(/<html[^>]*>/gi, "");
+	cleaned = cleaned.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "");
+	cleaned = cleaned.replace(/<body[^>]*>/gi, "");
+	
+	// Remove closing tags
+	cleaned = cleaned.replace(/<\/body>/gi, "");
+	cleaned = cleaned.replace(/<\/html>/gi, "");
+	
+	// Also remove the article wrapper we added
+	cleaned = cleaned.replace(/<article[^>]*>/gi, "");
+	cleaned = cleaned.replace(/<\/article>/gi, "");
+	
+	return cleaned.trim();
+}
+
 export function computeContentHash(blocksJson: string, sourceLocale: string): string {
 	return crypto.createHash("sha256").update(`${sourceLocale}::${blocksJson}`).digest("hex");
 }
@@ -203,11 +224,23 @@ export async function translateBlocksJsonToHtml(opts: {
 	// Convert JSON -> HTML (lossy, server-safe)
 	const html = blocksJsonToHtmlLossy(blocksJson);
 
+	// Wrap in article tag to give lingo.dev better context about document structure
+	const wrappedHtml = `<article>${html}</article>`;
+
+	console.log("Original HTML before translation:", wrappedHtml.substring(0, 500));
+
 	// Translate HTML via lingo.dev (server-side only)
-	const localized = await lingoDotDev.localizeHtml(html, {
+	const localized = await lingoDotDev.localizeHtml(wrappedHtml, {
 		sourceLocale,
 		targetLocale,
 	});
+
+	console.log("Raw translated HTML from Lingo:", localized.substring(0, 500));
+
+	// Strip any HTML document wrappers that lingo.dev might add
+	const cleanedHtml = stripHtmlDocumentWrapper(localized);
+
+	console.log("Cleaned translated HTML:", cleanedHtml.substring(0, 500));
 
 	// Upsert cache
 	const existing = cached[0];
@@ -215,7 +248,7 @@ export async function translateBlocksJsonToHtml(opts: {
 		await db
 			.update(translations)
 			.set({
-				html: localized,
+				html: cleanedHtml,
 				contentHash,
 				sourceLocale,
 			})
@@ -226,10 +259,10 @@ export async function translateBlocksJsonToHtml(opts: {
 			slug,
 			locale: targetLocale,
 			sourceLocale,
-			html: localized,
+			html: cleanedHtml,
 			contentHash,
 		});
 	}
 
-	return { html: localized };
+	return { html: cleanedHtml };
 }
