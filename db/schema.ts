@@ -25,3 +25,16 @@ export const document = pgTable("docuements", {
     createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
 })
+
+// Cache of translated HTML per document & locale
+export const translations = pgTable("translations", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    documentId: uuid("document_id").references(() => document.id).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
+    locale: varchar("locale", { length: 20 }).notNull(),
+    sourceLocale: varchar("source_locale", { length: 20 }).notNull(),
+    html: text("html").notNull(),
+    contentHash: varchar("content_hash", { length: 128 }).notNull(),
+    createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
+});

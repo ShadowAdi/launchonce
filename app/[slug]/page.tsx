@@ -10,7 +10,6 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import "@blocknote/mantine/style.css";
-import { lingoDotDev } from '@/lib/lingo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -21,7 +20,7 @@ export default function DocumentPage({ params }: PageProps) {
   const [doc, setDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [translatedHtml, setTranslatedHtml] = useState<string | null>(null);
+  // Client should not run translation; render original content only
 
   const router = useRouter();
 
@@ -75,22 +74,7 @@ export default function DocumentPage({ params }: PageProps) {
   );
 
 
-  useEffect(() => {
-    if (!editor || !doc) return;
-
-    const translate = async () => {
-      const html = await editor.blocksToHTMLLossy();
-
-      const localized = await lingoDotDev.localizeHtml(html, {
-        sourceLocale: "en",
-        targetLocale: "es",
-      });
-
-      setTranslatedHtml(localized);
-    };
-
-    translate();
-  }, [editor, doc]);
+  // Removed client-side translation. SEO-friendly translations are served from server routes.
 
   if (isLoading || !isMounted || !editor) {
     return (
@@ -123,7 +107,7 @@ export default function DocumentPage({ params }: PageProps) {
 
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+    <main className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
       {/* Cover Image */}
       {doc.coverImage && (
         <div className="w-full h-[60vh] relative bg-muted">
@@ -134,7 +118,7 @@ export default function DocumentPage({ params }: PageProps) {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
         </div>
       )}
 
@@ -199,14 +183,7 @@ export default function DocumentPage({ params }: PageProps) {
         )}
 
 
-        {translatedHtml ? (
-          <div
-            className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: translatedHtml }}
-          />
-        ) : (
-          <BlockNoteView editor={editor} editable={false} />
-        )}
+        <BlockNoteView editor={editor} editable={false} />
       </article>
 
       {/* Footer */}
