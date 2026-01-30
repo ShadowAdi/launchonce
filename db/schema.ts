@@ -39,3 +39,16 @@ export const translations = pgTable("translations", {
     createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
 });
+
+export const forms = pgTable("forms", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    documentId: uuid("document_id").references(() => document.id, { onDelete: "cascade" }).notNull().unique(),
+
+    title: varchar("title", { length: 225 }).notNull(),
+    description: text("description"),
+
+    isResponsePublic: boolean("is_response_public").default(false),
+    isEnabled: boolean("is_enabled").notNull().default(true),
+
+    createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
