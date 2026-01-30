@@ -13,102 +13,111 @@ import {
 } from "@/types/docuement/update-document.dto";
 import { and, eq, inArray } from "drizzle-orm";
 
-export const createDocument = async (payload: CreateDocumentDto, userId: string): Promise<ActionResponse<{
+
+export const createDocument = async (
+  payload: CreateDocumentDto,
+  userId: string
+): Promise<
+  ActionResponse<{
     id: string;
-    title: string
-}>> => {
-    try {
-        if (!payload.title || !payload.content) {
-            return {
-                success: false,
-                error: "Title and content are required"
-            };
-        }
-
-        const existingDoc = await db
-            .select()
-            .from(document)
-            .where(eq(document.title, payload.title))
-            .limit(1);
-
-        if (existingDoc.length > 0) {
-            return {
-                success: false,
-                error: "User with this title already exists"
-            };
-        }
-
-        const result = await db.transaction(async (tx) => {
-            const [createDocument] = await tx.insert(document).values({
-                title: payload.title,
-                subtitle: payload.subtitle,
-                description: payload.description,
-                content: payload.content,
-                coverImage: payload.coverImage,
-                tags: payload.tags,
-                visibility: payload.visibility ?? "draft",
-                userId,
-                slug: payload.title
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "-")
-                    .replace(/(^-|-$)/g, ""),
-            }).returning({
-                id: document.id,
-                title: document.title,
-            });
-
-            if (payload.form) {
-                const [createdForm] = await tx.insert(forms).values({
-                    documentId: createDocument.id,
-                    title: payload.form.title,
-                    description: payload.form.description,
-                    listResponsesPublicly:
-                        payload.form.listResponsesPublicly ?? false,
-                    isEnabled: payload.form.isEnabled ?? false,
-                }).returning({ id: forms.id });
-
-                if (payload.form.fields?.length > 0) {
-                    await tx.insert(formFields).values(
-                        payload.form.fields.map((field) => ({
-                            formId: createdForm.id,
-                            label: field.label,
-                            description: field.description,
-                            type: field.type,
-                            required: field.required ?? false,
-                            options: field.options,
-                            order: field.order,
-                        }))
-                    )
-                }
-            }
-            return createDocument
-        })
-
-        return {
-            success: true,
-            data: {
-                id: result.id,
-                title: result.title
-            }
-        }
-    } catch (error) {
-        console.error(`Failed to create document:`, error);
-
-        if (error instanceof Error) {
-            if (error.message.includes("connection")) {
-                return {
-                    success: false,
-                    error: "Database connection failed. Please try again later"
-                };
-            }
-        }
-
-        return {
-            success: false,
-            error: "Failed to create document. Please try again"
-        };
+    title: string;
+  }>
+> => {
+  try {
+    if (!payload.title || !payload.content) {
+      return {
+        success: false,
+        error: "Title and content are required",
+      };
     }
-}
+
+    const existingDoc = await db
+      .select({ id: document.id })
+      .from(document)
+      .where(eq(document.title, payload.title))
+      .limit(1);
+
+    if (existingDoc.length > 0) {
+      return {
+        success: false,
+        error: "Document with this title already exists",
+      };
+    }
+
+    const slug = payload.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const [createdDocument] = await db
+      .insert(document)
+      .values({
+        title: payload.title,
+        subtitle: payload.subtitle,
+        description: payload.description,
+        content: payload.content,
+        coverImage: payload.coverImage,
+        tags: payload.tags,
+        visibility: payload.visibility ?? "draft",
+        userId,
+        slug,
+      })
+      .returning({
+        id: document.id,
+        title: document.title,
+      });
+
+    if (payload.form) {
+      const [createdForm] = await db
+        .insert(forms)
+        .values({
+          documentId: createdDocument.id,
+          title: payload.form.title,
+          description: payload.form.description ?? null,
+          listResponsesPublicly:
+            payload.form.listResponsesPublicly ?? false,
+          isEnabled: payload.form.isEnabled ?? false,
+        })
+        .returning({ id: forms.id });
+
+      if (payload.form.fields?.length > 0) {
+        await db.insert(formFields).values(
+          payload.form.fields.map((field) => ({
+            formId: createdForm.id,
+            label: field.label,
+            description: field.description ?? null,
+            type: field.type,
+            required: field.required ?? false,
+            options: field.options ?? null,
+            order: field.order,
+          }))
+        );
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        id: createdDocument.id,
+        title: createdDocument.title,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to create document:", error);
+
+    if (error instanceof Error && error.message.includes("connection")) {
+      return {
+        success: false,
+        error: "Database connection failed. Please try again later",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Failed to create document. Please try again",
+    };
+  }
+};
 
 export const getAllDocs = async (userId: string): Promise<ActionResponse<{
     documents: GetDocumentPublicDto[];
