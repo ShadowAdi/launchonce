@@ -180,6 +180,22 @@ export const getAllDocs = async (userId: string): Promise<ActionResponse<{
 export const getDocumentById = async (docId: string, userId: string): Promise<ActionResponse<GetDocumentPublicDto & {
     userName: string;
     userEmail: string;
+    form?: {
+        id: string;
+        title: string;
+        description?: string;
+        isEnabled: boolean;
+        listResponsesPublicly: boolean;
+        fields: Array<{
+            id: string;
+            label: string;
+            description?: string;
+            type: string;
+            required: boolean;
+            options?: any;
+            order: number;
+        }>;
+    };
 }>> => {
     try {
         const result = await db
@@ -212,6 +228,54 @@ export const getDocumentById = async (docId: string, userId: string): Promise<Ac
         }
 
         const doc = result[0];
+        
+        // Fetch form data if it exists
+        const [formRow] = await db
+            .select({
+                id: forms.id,
+                title: forms.title,
+                description: forms.description,
+                isEnabled: forms.isEnabled,
+                listResponsesPublicly: forms.listResponsesPublicly,
+            })
+            .from(forms)
+            .where(eq(forms.documentId, doc.id as string))
+            .limit(1);
+
+        let formData = undefined;
+        if (formRow) {
+            const fields = await db
+                .select({
+                    id: formFields.id,
+                    label: formFields.label,
+                    description: formFields.description,
+                    type: formFields.type,
+                    required: formFields.required,
+                    options: formFields.options,
+                    order: formFields.order,
+                })
+                .from(formFields)
+                .where(eq(formFields.formId, formRow.id as string))
+                .orderBy(formFields.order);
+
+            formData = {
+                id: formRow.id as string,
+                title: formRow.title as string,
+                description: formRow.description ?? undefined,
+                isEnabled: formRow.isEnabled as boolean,
+                listResponsesPublicly: formRow.listResponsesPublicly as boolean,
+                fields: fields.map((f) => ({
+                    id: f.id as string,
+                    label: f.label as string,
+                    description: f.description ?? undefined,
+                    type: f.type as string,
+                    required: f.required as boolean,
+                    options: f.options ?? undefined,
+                    order: f.order as number,
+                })),
+            };
+        }
+
         const formattedDoc = {
             id: doc.id as string,
             userId: doc.userId as string,
@@ -227,6 +291,7 @@ export const getDocumentById = async (docId: string, userId: string): Promise<Ac
             createdAt: doc.createdAt.toISOString(),
             userName: doc.userName as string,
             userEmail: doc.userEmail as string,
+            form: formData,
         };
 
         return {
