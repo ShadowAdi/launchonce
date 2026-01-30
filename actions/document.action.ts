@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db/db";
-import { document, users } from "@/db/schema";
+import { document, translations, users } from "@/db/schema";
 import { ActionResponse } from "@/types/action-response";
 import { CreateDocumentDto, GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
 import { and, eq } from "drizzle-orm";
@@ -208,6 +208,23 @@ export const getDocumentById = async (docId: string, userId: string): Promise<Ac
 // Delete document
 export const deleteDocument = async (docId: string, userId: string): Promise<ActionResponse<{ message: string }>> => {
     try {
+        const existingDoc = await db
+            .select()
+            .from(document)
+            .where(and(eq(document.id, docId), eq(document.userId, userId)))
+            .limit(1);
+
+        if (existingDoc.length === 0) {
+            return {
+                success: false,
+                error: "Document not found or you don't have permission to update it"
+            };
+        }
+        const doc = existingDoc[0];
+        await db
+            .delete(translations)
+            .where(eq(translations.slug, doc.slug))
+            .returning({ id: document.id });
         const result = await db
             .delete(document)
             .where(and(eq(document.id, docId), eq(document.userId, userId)))

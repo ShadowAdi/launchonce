@@ -10,6 +10,8 @@ export function blocksJsonToHtmlLossy(json: string): string {
 	try {
 		const blocks = JSON.parse(json);
 
+		console.log("BlockNote JSON structure (first 2 blocks):", JSON.stringify(blocks.slice(0, 2), null, 2));
+
 		if (!Array.isArray(blocks)) {
 			return `<p>${escapeHtml(String(json))}</p>`;
 		}
@@ -69,6 +71,8 @@ export function blocksJsonToHtmlLossy(json: string): string {
 function renderBlock(block: any): string {
 	const type = block?.type ?? "paragraph";
 	const content = block?.content ?? "";
+
+	console.log(`Rendering block type: ${type}, content preview:`, JSON.stringify(content).substring(0, 100));
 
 	const text = renderInline(content);
 

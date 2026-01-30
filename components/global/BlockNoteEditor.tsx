@@ -43,6 +43,12 @@ export default function BlockNoteEditorComponent({
   // Create editor instance
   const editor = useCreateBlockNote({
     initialContent: initialBlocks,
+    // Suppress code block syntax highlighting warning
+    // @ts-ignore - BlockNote typing issue
+    _tiptapOptions: {
+      enableInputRules: false,
+      enablePasteRules: false,
+    },
   });
 
   // Update content on change
