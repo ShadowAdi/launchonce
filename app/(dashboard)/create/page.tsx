@@ -634,29 +634,20 @@ export default function CreateDocumentPage() {
                               
                               {editingField.type === "select" && (
                                 <div className="space-y-2">
-                                  <Label>Options (comma-separated)</Label>
-                                  <Input
-                                    value={(editingField.options || []).join(", ")}
-                                    onChange={(e) =>
+                                  <Label>Options</Label>
+                                  <TagsInput
+                                    value={editingField.options || []}
+                                    onChange={(options) =>
                                       setEditingField({
                                         ...editingField,
-                                        options: e.target.value
-                                          .split(",")
-                                          .map((o) => o.trim())
-                                          .filter(Boolean),
+                                        options,
                                       })
                                     }
-                                    placeholder="Option 1, Option 2, Option 3"
+                                    placeholder="Type an option and press Enter"
                                   />
-                                  {editingField.options && editingField.options.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2 p-3 bg-muted/50 rounded-md">
-                                      {editingField.options.map((option, idx) => (
-                                        <Badge key={idx} variant="secondary">
-                                          {option}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
+                                  <p className="text-sm text-muted-foreground">
+                                    Add multiple options for the dropdown select
+                                  </p>
                                 </div>
                               )}
                               
