@@ -31,6 +31,20 @@ export const createDocument = async (
       };
     }
 
+    // Verify user exists
+    const [userExists] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!userExists) {
+      return {
+        success: false,
+        error: "User not found. Please log in again.",
+      };
+    }
+
     const existingDoc = await db
       .select({ id: document.id })
       .from(document)
@@ -110,6 +124,14 @@ export const createDocument = async (
     };
   } catch (error) {
     console.error("Failed to create document:", error);
+
+    // Handle specific foreign key constraint error
+    if (error instanceof Error && error.message.includes("docuements_userId_users_id_fk")) {
+      return {
+        success: false,
+        error: "User account not found. Please log in again.",
+      };
+    }
 
     if (error instanceof Error && error.message.includes("connection")) {
       return {

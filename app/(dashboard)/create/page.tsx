@@ -110,7 +110,7 @@ export default function CreateDocumentPage() {
   const [editingFieldIndex, setEditingFieldIndex] = useState<number | null>(null);
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentSchema),
@@ -133,6 +133,7 @@ export default function CreateDocumentPage() {
   const onSubmit = async (data: DocumentFormValues) => {
     if (!user?.id) {
       toast.error("You must be logged in to create a document");
+      router.push("/login");
       return;
     }
 
@@ -166,7 +167,14 @@ export default function CreateDocumentPage() {
         form.reset();
         router.push("/");
       } else {
-        toast.error(result.error || "Failed to create document");
+        // Check if error is related to user not found
+        if (result.error?.includes("User not found") || result.error?.includes("User account not found")) {
+          toast.error("Your session is invalid. Please log in again.");
+          logout();
+          router.push("/login");
+        } else {
+          toast.error(result.error || "Failed to create document");
+        }
       }
     } catch (error) {
       console.error("Error creating document:", error);
