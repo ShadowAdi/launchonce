@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db/db";
-import { document, translations, users } from "@/db/schema";
+import { document, formFields, forms, translations, users } from "@/db/schema";
 import { ActionResponse } from "@/types/action-response";
 import { CreateDocumentDto, GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
 import { and, eq } from "drizzle-orm";
@@ -31,18 +31,58 @@ export const createDocument = async (payload: CreateDocumentDto, userId: string)
             };
         }
 
-        const [docuement] = await db.insert(document).values({
-            ...payload,
-            userId,
-            slug: payload.title.split(" ")[0].toLowerCase()
-        }).returning({
-            id: document.id,
-            title: document.title
-        });
+        const result = await db.transaction(async (tx) => {
+            const [createDocument] = await tx.insert(document).values({
+                title: payload.title,
+                subtitle: payload.subtitle,
+                description: payload.description,
+                content: payload.content,
+                coverImage: payload.coverImage,
+                tags: payload.tags,
+                visibility: payload.visibility ?? "draft",
+                userId,
+                slug: payload.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/(^-|-$)/g, ""),
+            }).returning({
+                id: document.id,
+                title: document.title,
+            });
+
+            if (payload.form) {
+                const [createdForm] = await tx.insert(forms).values({
+                    documentId: createDocument.id,
+                    title: payload.form.title,
+                    description: payload.form.description,
+                    listResponsesPublicly:
+                        payload.form.listResponsesPublicly ?? false,
+                    isEnabled: payload.form.isEnabled ?? false,
+                }).returning({ id: forms.id });
+
+                if (payload.form.fields?.length > 0) {
+                    await tx.insert(formFields).values(
+                        payload.form.fields.map((field) => ({
+                            formId: createdForm.id,
+                            label: field.label,
+                            description: field.description,
+                            type: field.type,
+                            required: field.required ?? false,
+                            options: field.options,
+                            order: field.order,
+                        }))
+                    )
+                }
+            }
+            return createDocument
+        })
 
         return {
-            success: true,
-            data: docuement
+            success:true,
+            data:{
+                id:result.id,
+                title:result.title
+            }
         }
     } catch (error) {
         console.error(`Failed to create document:`, error);
@@ -58,7 +98,7 @@ export const createDocument = async (payload: CreateDocumentDto, userId: string)
 
         return {
             success: false,
-            error: "Failed to create Document. Please try again"
+            error: "Failed to create document. Please try again"
         };
     }
 }
