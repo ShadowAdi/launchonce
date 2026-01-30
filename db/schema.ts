@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -51,4 +51,22 @@ export const forms = pgTable("forms", {
     isEnabled: boolean("is_enabled").notNull().default(true),
 
     createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
+
 });
+
+
+export const form_fields = pgTable("form_fields", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    formId: uuid("form_id").references(() => forms.id, { onDelete: "cascade" }).notNull(),
+
+    label: varchar("label", { length: 225 }).notNull(),
+    description: text("description"),
+    type: varchar("type", { length: 50 }).notNull(),
+
+    required: boolean("required").notNull().default(false),
+    options: jsonb("options"),
+    order: integer("order").notNull(),
+    createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`).$onUpdate(() => new Date())
+})
