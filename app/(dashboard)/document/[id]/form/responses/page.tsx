@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getFormByDocumentId, getFormResponsesByDocumentId } from "@/actions/form.action";
@@ -27,7 +27,7 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [selectedResponse, setSelectedResponse] = useState<FormResponseDto | null>(null);
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +71,10 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
 
     fetchData();
   }, [resolvedParams.id, user?.id, isAuthLoading, router]);
+
+  if (!isAuthLoading && !isAuthenticated) {
+    redirect("/document")
+  }
 
   const exportToCSV = () => {
     if (!form || responses.length === 0) return;
@@ -180,7 +184,7 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
                     </TableHeader>
                     <TableBody>
                       {responses.map((response) => (
-                        <TableRow 
+                        <TableRow
                           key={response.id}
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => setSelectedResponse(response)}

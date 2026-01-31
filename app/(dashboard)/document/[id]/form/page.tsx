@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getFormByDocumentId } from "@/actions/form.action";
@@ -17,7 +17,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
   const [form, setForm] = useState<FormDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +54,13 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
 
     fetchData();
   }, [resolvedParams.id, user?.id, isAuthLoading, router]);
+
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      redirect("/document")
+    }
+  }, [isAuthLoading, isAuthenticated])
+
 
   if (isLoading) {
     return (
@@ -128,7 +135,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
-          {/* Form Configuration */}
+        {/* Form Configuration */}
         <Card>
           <CardHeader>
             <CardTitle>Form Configuration</CardTitle>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -115,7 +115,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const [existingFormId, setExistingFormId] = useState<string | null>(null);
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentSchema),
@@ -134,6 +134,12 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
       formFields: [],
     },
   });
+
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      redirect("/document")
+    }
+  }, [isAuthLoading, isAuthenticated])
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -246,7 +252,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         const existingFieldIds = new Set(
           formFields.filter((f) => f.id).map((f) => f.id!)
         );
-        
+
         const creates = formFields
           .filter((f) => !f.id)
           .map((f) => ({
@@ -274,7 +280,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
         const currentFieldIds = new Set(
           formFields.filter((f) => f.id).map((f) => f.id!)
         );
-        
+
         // We need to track the original field IDs from when we loaded the form
         // For simplicity, we'll just delete fields that no longer exist
         const deletes: string[] = [];
@@ -742,7 +748,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                   placeholder="Field label"
                                 />
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <Label>Description</Label>
                                 <Input
@@ -756,7 +762,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                   placeholder="Optional description"
                                 />
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <Label>Field Type</Label>
                                 <Select
@@ -789,7 +795,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                   </SelectContent>
                                 </Select>
                               </div>
-                              
+
                               {editingField.type === "select" && (
                                 <div className="space-y-2">
                                   <Label>Options</Label>
@@ -808,7 +814,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                   </p>
                                 </div>
                               )}
-                              
+
                               <div className="flex items-center space-x-2 pt-2">
                                 <Switch
                                   checked={editingField.required}
@@ -821,7 +827,7 @@ export default function EditDocumentPage({ params }: { params: Promise<{ id: str
                                 />
                                 <Label>Required field</Label>
                               </div>
-                              
+
                               <div className="flex gap-2 pt-2">
                                 <Button
                                   type="button"

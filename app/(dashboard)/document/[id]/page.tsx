@@ -111,7 +111,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   }, [initialBlocks]);
 
   useEffect(() => {
-    if (!isAuthLoading && isAuthenticated) {
+    if (!isAuthLoading && !isAuthenticated) {
       redirect("/document")
     }
   }, [isAuthLoading, isAuthenticated])
