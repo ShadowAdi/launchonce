@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
+  const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const router = useRouter();
 
   const {
@@ -45,8 +45,11 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success("Account created successfully! Please sign in.");
-      router.push("/login");
+      // Automatically log in the user
+      login(result.data.token, result.data.user);
+      
+      toast.success("Account created successfully! Welcome aboard.");
+      router.push("/document");
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An unexpected error occurred. Please try again.");

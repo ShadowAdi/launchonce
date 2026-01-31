@@ -11,10 +11,12 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 export const createUser = async (payload: CreateUserDto): Promise<ActionResponse<{
-    id: string;
-    name: string | null;
-    email: string;
-    createdAt: Date;
+    token: string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
 }>> => {
     try {
         if (!payload.email || !payload.password || !payload.name) {
@@ -52,9 +54,26 @@ export const createUser = async (payload: CreateUserDto): Promise<ActionResponse
 
         console.log(`User ${user}`)
 
+        // Generate JWT token for automatic login
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email
+            },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
         return {
             success: true,
-            data: user
+            data: {
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                }
+            }
         };
     } catch (error) {
         console.error(`Failed to create user:`, error);
