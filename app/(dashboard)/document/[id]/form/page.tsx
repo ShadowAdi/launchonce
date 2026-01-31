@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Calendar, Eye, FileText, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, Download, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { FormDto, FormResponseDto } from "@/types/forms/form.dto";
 
@@ -103,7 +103,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-muted rounded w-1/3"></div>
@@ -124,7 +124,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -137,7 +137,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              <h1 className="text-3xl font-bold">
                 {form.title}
               </h1>
               {form.description && (
@@ -145,11 +145,11 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
               )}
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Badge variant={form.isEnabled ? "default" : "secondary"} className="px-4 py-1.5">
-                {form.isEnabled ? "✓ Enabled" : "✗ Disabled"}
+              <Badge variant={form.isEnabled ? "default" : "secondary"}>
+                {form.isEnabled ? "Enabled" : "Disabled"}
               </Badge>
-              <Badge variant={form.listResponsesPublicly ? "default" : "outline"} className="px-4 py-1.5">
-                {form.listResponsesPublicly ? "🌐 Public Responses" : "🔒 Private Responses"}
+              <Badge variant={form.listResponsesPublicly ? "default" : "outline"}>
+                {form.listResponsesPublicly ? "Public" : "Private"}
               </Badge>
               {form.isEnabled && (
                 <Button
@@ -169,7 +169,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        <Card className="mb-8 shadow-sm">
+        <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -185,7 +185,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
               {form.fields.map((field) => (
                 <div
                   key={field.id}
-                  className="p-4 border rounded-lg hover:border-primary/50 hover:bg-muted/50 transition-all"
+                  className="p-4 border rounded-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-1">
@@ -214,14 +214,11 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
         </Card>
 
         {/* Responses Section */}
-        <Card className="shadow-sm">
+        <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <CardTitle className="text-2xl">Responses</CardTitle>
-                <CardDescription className="mt-1">
-                  {responses.length} total submission{responses.length !== 1 ? "s" : ""}
-                </CardDescription>
+                <CardTitle>Responses ({responses.length})</CardTitle>
               </div>
               {responses.length > 0 && (
                 <Button onClick={exportToCSV} variant="outline" size="sm">
@@ -245,11 +242,11 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-[180px] font-semibold">Submitted At</TableHead>
-                        <TableHead className="w-[120px] font-semibold">Status</TableHead>
+                      <TableRow>
+                        <TableHead className="w-[180px]">Submitted At</TableHead>
+                        <TableHead className="w-[120px]">Status</TableHead>
                         {form.fields.map((field) => (
-                          <TableHead key={field.id} className="font-semibold">
+                          <TableHead key={field.id}>
                             {field.label}
                           </TableHead>
                         ))}
@@ -259,7 +256,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
                       {responses.map((response) => (
                         <TableRow 
                           key={response.id}
-                          className="hover:bg-muted/50 cursor-pointer transition-colors"
+                          className="cursor-pointer"
                           onClick={() => setSelectedResponse(response)}
                         >
                           <TableCell className="font-medium">
@@ -277,15 +274,8 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={response.isPublic ? "default" : "secondary"} className="text-xs">
-                              {response.isPublic ? (
-                                <>
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  Public
-                                </>
-                              ) : (
-                                "Private"
-                              )}
+                            <Badge variant={response.isPublic ? "default" : "secondary"}>
+                              {response.isPublic ? "Public" : "Private"}
                             </Badge>
                           </TableCell>
                           {form.fields.map((field) => {
@@ -306,7 +296,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
 
                 {/* Selected Response Detail Modal */}
                 {selectedResponse && (
-                  <Card className="mt-6 border-2 border-primary/20">
+                  <Card className="mt-6">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -327,7 +317,7 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
                     <CardContent>
                       <div className="space-y-4">
                         {selectedResponse.answers.map((answer) => (
-                          <div key={answer.id} className="border-l-2 border-primary/30 pl-4 py-2">
+                          <div key={answer.id} className="border-l-2 pl-4 py-2">
                             <p className="text-sm font-medium text-muted-foreground mb-1">
                               {answer.fieldLabel}
                             </p>
