@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getAllDocs } from '@/actions/document.action';
+import { retryAction } from '@/lib/retry-helper';
 import { GetDocumentPublicDto } from '@/types/docuement/create-document.dto';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,15 @@ const DashboardPage = () => {
       if (user?.id) {
         setIsLoadingDocs(true);
         try {
-          const result = await getAllDocs(user.id);
+          const result = await retryAction(
+            () => getAllDocs(user.id),
+            {
+              maxRetries: 3,
+              onRetry: (attempt) => {
+                toast.info(`Loading documents... (attempt ${attempt}/3)`);
+              },
+            }
+          );
           if (result.success && result.data) {
             setDocuments(result.data.documents);
           } else {
