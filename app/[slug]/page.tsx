@@ -16,7 +16,7 @@ import "@blocknote/mantine/style.css";
 // Dynamic import to prevent SSR issues with BlockNote
 const BlockNoteEditor = dynamic(
   () => import('@/components/global/BlockNoteEditor'),
-  { 
+  {
     ssr: false,
     loading: () => (
       <div className="animate-pulse space-y-3 pt-8">
@@ -152,52 +152,24 @@ export default function DocumentPage({ params }: PageProps) {
                 <div>
                   <div className="font-medium text-foreground">{doc.userName}</div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {new Date(doc.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </span>
-                  <span>·</span>
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5" />
-                    {doc.viewCount} views
-                  </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {new Date(doc.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </span>
+                    <span>·</span>
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5" />
+                      {doc.viewCount} views
+                    </span>
+                  </div>
                 </div>
-              </div>
               </div>
               <LanguageSelector slug={doc.slug} currentLang="en" />
             </div>
-
-            {/* Form Link Button */}
-            <div className="py-4">
-              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
-                        Have feedback or questions?
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Submit your response through our form
-                      </p>
-                    </div>
-                    <Button
-                      size="lg"
-                      className="shadow-md hover:shadow-lg transition-all"
-                      onClick={() => router.push(`/${doc.slug}/form`)}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Submit Response
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {doc.tags && doc.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4">
                 {doc.tags.map((tag: string, index: number) => (
@@ -224,7 +196,33 @@ export default function DocumentPage({ params }: PageProps) {
         {initialBlocks && <BlockNoteEditor initialContent={initialBlocks} editable={false} />}
       </article>
 
-      {/* Footer */}
+      <div className="py-4 w-1/2 mx-auto my-5">
+        <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Have feedback or questions?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Submit your response through our form
+                </p>
+              </div>
+              <Button
+                size="lg"
+                className="shadow-md hover:shadow-lg transition-all"
+                onClick={() => router.push(`/${doc.slug}/form`)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Submit Response
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+
       <div className="border-t bg-muted/20 mt-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col items-center justify-center gap-4">

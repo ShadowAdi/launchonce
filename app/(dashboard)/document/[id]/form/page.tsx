@@ -169,35 +169,6 @@ export default function DocumentFormPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-l-4 border-l-primary">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Responses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{responses.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-green-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Public Responses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{responses.filter(r => r.isPublic).length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Form Fields</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{form.fields.length}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Form Fields Summary */}
         <Card className="mb-8 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
