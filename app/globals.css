@@ -51,6 +51,12 @@
   --color-dark-card: #141414;
   --color-dark-lighter: #1E1E1E;
   --color-gray-text: #A0A0A0;
+  --color-text-dark: #1A1A1A;
+  --color-text-gray: #6B6B6B;
+  --color-light-card: #F8F8F8;
+  --color-light-bg: #F0F0F0;
+  --color-light-section: #FAFAFA;
+  --border-light: #E5E5E5;
 }
 
 :root {
