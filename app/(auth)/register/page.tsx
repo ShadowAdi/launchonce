@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 import { createUser } from "@/actions/user.action";
+import { retryAction } from "@/lib/retry-helper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const router = useRouter();
 
@@ -28,14 +30,24 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
+    setRetryCount(0);
 
     try {
       console.log("Submitting registration data:", data);
-      const result = await createUser({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
+      const result = await retryAction(
+        () => createUser({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
+        {
+          maxRetries: 3,
+          onRetry: (attempt) => {
+            setRetryCount(attempt);
+            toast.info(`Connecting... (attempt ${attempt}/3)`);
+          },
+        }
+      );
 
       console.log("Registration result:", result);
 
@@ -119,7 +131,11 @@ export default function RegisterPage() {
             className="w-full bg-foreground text-background hover:bg-foreground/90 h-11"
             disabled={isLoading}
           >
-            {isLoading ? "Creating account..." : "Create account"}
+            {isLoading 
+              ? retryCount > 0 
+                ? `Retrying... (${retryCount}/3)` 
+                : "Creating account..."
+              : "Create account"}
           </Button>
         </form>
 

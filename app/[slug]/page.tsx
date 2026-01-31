@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useMemo } from 'react';
 import { getDocumentBySlug } from '@/actions/document.action';
 import { getFormBySlug } from '@/actions/form.action';
+import { retryAction } from '@/lib/retry-helper';
 import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Eye, FileText } from 'lucide-react';
@@ -50,13 +51,24 @@ export default function DocumentPage({ params }: PageProps) {
     const fetchDocument = async () => {
       setIsLoading(true);
       try {
-        const result = await getDocumentBySlug(resolvedParams.slug);
+        const result = await retryAction(
+          () => getDocumentBySlug(resolvedParams.slug),
+          {
+            maxRetries: 3,
+            onRetry: (attempt) => {
+              toast.info(`Loading document... (attempt ${attempt}/3)`);
+            },
+          }
+        );
 
         if (result.success && result.data) {
           setDoc(result.data);
           
           // Check if form exists for this document
-          const formResult = await getFormBySlug(resolvedParams.slug);
+          const formResult = await retryAction(
+            () => getFormBySlug(resolvedParams.slug),
+            { maxRetries: 2 }
+          );
           setHasForm(formResult.success && formResult.data?.isEnabled);
         } else {
           toast.error(!result.success ? result.error : "Failed to load document");

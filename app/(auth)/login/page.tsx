@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { loginUser } from "@/actions/user.action";
+import { retryAction } from "@/lib/retry-helper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function LoginPage() {
 
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const router = useRouter();
   const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
@@ -29,9 +31,19 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setRetryCount(0);
 
     try {
-      const result = await loginUser(data.email, data.password);
+      const result = await retryAction(
+        () => loginUser(data.email, data.password),
+        {
+          maxRetries: 3,
+          onRetry: (attempt) => {
+            setRetryCount(attempt);
+            toast.info(`Connecting... (attempt ${attempt}/3)`);
+          },
+        }
+      );
 
       if (!result.success) {
         toast.error(result.error || "Login failed");
@@ -99,7 +111,11 @@ export default function LoginPage() {
             className="w-full bg-foreground text-background hover:bg-foreground/90 h-11"
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading 
+              ? retryCount > 0 
+                ? `Retrying... (${retryCount}/3)` 
+                : "Signing in..."
+              : "Sign in"}
           </Button>
         </form>
 
