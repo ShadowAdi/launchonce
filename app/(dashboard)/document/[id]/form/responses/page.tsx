@@ -125,7 +125,6 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <Link href={`/document/${resolvedParams.id}/form`}>
             <Button variant="ghost" size="sm" className="mb-4">
@@ -150,7 +149,6 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Responses Table */}
         <Card>
           <CardHeader>
             <CardTitle>All Responses ({responses.length})</CardTitle>
@@ -173,10 +171,10 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[180px]">Submitted At</TableHead>
-                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-45">Submitted At</TableHead>
+                        <TableHead className="w-25">Status</TableHead>
                         {form.fields.map((field) => (
-                          <TableHead key={field.id} className="min-w-[200px]">
+                          <TableHead key={field.id} className="min-w-50">
                             {field.label}
                           </TableHead>
                         ))}
@@ -223,7 +221,6 @@ export default function FormResponsesPage({ params }: { params: Promise<{ id: st
                   </Table>
                 </div>
 
-                {/* Selected Response Detail */}
                 {selectedResponse && (
                   <Card className="mt-6 border">
                     <CardHeader>
