@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use, useMemo } from 'react';
 import { getDocumentBySlug } from '@/actions/document.action';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Eye, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -12,6 +12,7 @@ import { LanguageSelector } from '@/components/global/LanguageSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import "@blocknote/mantine/style.css";
+import { useAuth } from '@/context/AuthContext';
 
 // Dynamic import to prevent SSR issues with BlockNote
 const BlockNoteEditor = dynamic(
@@ -37,8 +38,6 @@ export default function DocumentPage({ params }: PageProps) {
   const [doc, setDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  // Client should not run translation; render original content only
-
   const router = useRouter();
 
   useEffect(() => {
@@ -83,7 +82,6 @@ export default function DocumentPage({ params }: PageProps) {
     }
   }, [doc?.content, isMounted]);
 
-  // Removed client-side translation. SEO-friendly translations are served from server routes.
 
   if (isLoading || !isMounted) {
     return (
@@ -117,7 +115,6 @@ export default function DocumentPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
-      {/* Cover Image */}
       {doc.coverImage && (
         <div className="w-full h-[60vh] relative bg-muted">
           <Image

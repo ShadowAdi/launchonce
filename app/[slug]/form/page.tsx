@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getFormBySlug, submitFormResponse } from "@/actions/form.action";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { FormDto } from "@/types/forms/form.dto";
+import { useAuth } from "@/context/AuthContext";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
@@ -75,10 +76,8 @@ export default function PublicFormPage({ params }: PageProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!form) return;
 
-        // Validate required fields
         const missingFields = form.fields
             .filter((field) => field.required && !formData[field.id]?.trim())
             .map((field) => field.label);
@@ -370,7 +369,7 @@ export default function PublicFormPage({ params }: PageProps) {
                         </form>
                     </CardContent>
                 </Card>
-                </div>
             </div>
-        );
+        </div>
+    );
 }
