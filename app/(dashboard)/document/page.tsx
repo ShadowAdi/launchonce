@@ -55,9 +55,9 @@ const DashboardPage = () => {
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doc.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
       const matchesFilter = filterVisibility === 'all' || doc.visibility === filterVisibility;
-      
+
       return matchesSearch && matchesFilter;
     });
   }, [documents, searchQuery, filterVisibility]);
@@ -84,8 +84,7 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Header */}
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -112,7 +111,6 @@ const DashboardPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filter Bar */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -126,7 +124,7 @@ const DashboardPage = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground font-medium">Filter:</span>
             <div className="flex gap-2">
@@ -158,7 +156,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Documents List */}
         {isLoadingDocs ? (
           <div className="py-20 text-center">
             <div className="text-muted-foreground">Loading documents...</div>
@@ -169,8 +166,8 @@ const DashboardPage = () => {
               <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
             <div className="text-muted-foreground mb-4">
-              {searchQuery || filterVisibility !== 'all' 
-                ? 'No documents match your filters' 
+              {searchQuery || filterVisibility !== 'all'
+                ? 'No documents match your filters'
                 : 'No documents yet. Start creating!'}
             </div>
             {!searchQuery && filterVisibility === 'all' && (
@@ -219,11 +216,10 @@ const DashboardPage = () => {
                 <div className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        doc.visibility === 'published'
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${doc.visibility === 'published'
                           ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
                           : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                      }`}
+                        }`}
                     >
                       {doc.visibility}
                     </span>
