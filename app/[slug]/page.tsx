@@ -4,11 +4,12 @@ import { useState, useEffect, use, useMemo } from 'react';
 import { getDocumentBySlug } from '@/actions/document.action';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Calendar, Eye } from 'lucide-react';
+import { Calendar, Eye, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import { LanguageSelector } from '@/components/global/LanguageSelector';
+import { Button } from '@/components/ui/button';
 import "@blocknote/mantine/style.css";
 
 // Dynamic import to prevent SSR issues with BlockNote
@@ -167,6 +168,18 @@ export default function DocumentPage({ params }: PageProps) {
               </div>
               </div>
               <LanguageSelector slug={doc.slug} currentLang="en" />
+            </div>
+
+            {/* Form Link Button */}
+            <div className="py-6">
+              <Button
+                size="lg"
+                className="w-full sm:w-auto gap-2"
+                onClick={() => router.push(`/${doc.slug}/form`)}
+              >
+                <FileText className="h-4 w-4" />
+                Submit a Response
+              </Button>
             </div>
 
             {doc.tags && doc.tags.length > 0 && (

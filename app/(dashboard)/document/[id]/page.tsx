@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
-import { Trash2, Edit, ArrowLeft, ExternalLink, Copy, Globe } from "lucide-react";
+import { Trash2, Edit, ArrowLeft, ExternalLink, Copy, Globe, ClipboardList } from "lucide-react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
@@ -208,6 +208,15 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
                   </Button>
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/document/${document?.id}/form`)}
+                className="gap-2"
+              >
+                <ClipboardList className="h-3.5 w-3.5" />
+                Form
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
