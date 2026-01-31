@@ -28,8 +28,7 @@ export default function Home() {
     offset: ["start start", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -173,7 +172,7 @@ export default function Home() {
       >
         <motion.div
           className="relative max-w-5xl mx-auto text-center"
-          style={{ y, opacity }}
+          style={{ y }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
