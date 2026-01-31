@@ -18,10 +18,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { GetDocumentPublicDto } from "@/types/docuement/create-document.dto";
 import { Trash2, Edit, ArrowLeft, ExternalLink, Copy, Globe, ClipboardList } from "lucide-react";
-import { BlockNoteView } from "@blocknote/mantine";
-import { useCreateBlockNote } from "@blocknote/react";
 import { PartialBlock } from "@blocknote/core";
+import dynamic from "next/dynamic";
+import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
+
+// Dynamic import to prevent SSR issues with BlockNote
+const BlockNoteView = dynamic(
+  () => import("@blocknote/mantine").then((mod) => mod.BlockNoteView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse space-y-3 pt-8">
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded"></div>
+        <div className="h-4 bg-muted rounded w-5/6"></div>
+      </div>
+    ),
+  }
+);
 
 interface DocumentWithUser extends GetDocumentPublicDto {
   userName: string;
@@ -312,14 +327,16 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         )}
 
         {/* BlockNote Content */}
-        <div className="mb-12">
-          <BlockNoteView
-            editor={editor}
-            editable={false}
-            className="px-0"
-            theme="light"
-          />
-        </div>
+        {isMounted && (
+          <div className="mb-12">
+            <BlockNoteView
+              editor={editor as any}
+              editable={false}
+              className="px-0"
+              theme="light"
+            />
+          </div>
+        )}
 
         {/* Tags */}
         {document.tags && document.tags.length > 0 && (
