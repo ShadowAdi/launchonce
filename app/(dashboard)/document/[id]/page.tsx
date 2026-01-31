@@ -22,6 +22,7 @@ import { PartialBlock } from "@blocknote/core";
 import dynamic from "next/dynamic";
 import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
+import Image from "next/image";
 
 // Dynamic import to prevent SSR issues with BlockNote
 const BlockNoteView = dynamic(
@@ -311,18 +312,17 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           </time>
         </div>
 
-        {/* Cover Image */}
         {document.coverImage && (
-          <div className="mb-12 max-h-75 overflow-hidden">
-            <img
-              src={document.coverImage}
+            <Image
+              src={`${document.coverImage}`}
               alt={document.title}
-              className="w-full h-auto object-cover"
+              width={1200}
+              height={400}
+              className="w-full object-cover mb-4 max-h-100"
+              priority
             />
-          </div>
         )}
 
-        {/* Description */}
         {document.description && (
           <div className="mb-8">
             <p className="text-lg text-foreground/80 leading-relaxed">
@@ -331,7 +331,6 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           </div>
         )}
 
-        {/* BlockNote Content */}
         {isMounted && (
           <div className="mb-12">
             <BlockNoteView
