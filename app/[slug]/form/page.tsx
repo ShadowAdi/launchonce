@@ -225,14 +225,14 @@ export default function PublicFormPage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-24 bg-muted rounded"></div>
+            <div className="h-10 bg-muted rounded w-1/3"></div>
+            <div className="h-32 bg-muted rounded"></div>
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 bg-muted rounded"></div>
+                <div key={i} className="h-24 bg-muted rounded"></div>
               ))}
             </div>
           </div>
@@ -247,25 +247,31 @@ export default function PublicFormPage({ params }: PageProps) {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
-                <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
-                <p className="text-muted-foreground mb-6">
-                  Your response has been submitted successfully.
-                </p>
-                <div className="flex gap-4 justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 flex items-center justify-center">
+        <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="shadow-2xl border-2">
+            <CardContent className="py-16">
+              <div className="text-center space-y-6">
+                <div className="mx-auto w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold">Thank You!</h2>
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    Your response has been submitted successfully. We appreciate your time and feedback.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                   <Link href={`/${resolvedParams.slug}`}>
-                    <Button>
+                    <Button size="lg" className="w-full sm:w-auto">
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Back to Document
                     </Button>
                   </Link>
                   <Button
+                    size="lg"
                     variant="outline"
+                    className="w-full sm:w-auto"
                     onClick={() => {
                       setIsSubmitted(false);
                       // Reset form data
@@ -289,78 +295,118 @@ export default function PublicFormPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link href={`/${resolvedParams.slug}`}>
-            <Button variant="ghost" size="sm" className="mb-4">
+            <Button variant="ghost" size="sm" className="mb-6 hover:bg-muted">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Document
             </Button>
           </Link>
 
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <FileText className="h-6 w-6 text-primary" />
+          <div className="flex items-start gap-4 mb-4">
+            <div className="p-4 rounded-xl bg-primary/10 ring-1 ring-primary/20">
+              <FileText className="h-8 w-8 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold tracking-tight">{form.title}</h1>
+              <h1 className="text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                {form.title}
+              </h1>
               {form.description && (
-                <p className="text-muted-foreground mt-2">{form.description}</p>
+                <p className="text-lg text-muted-foreground">{form.description}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fill Out the Form</CardTitle>
-            <CardDescription>
-              Fields marked with * are required
+        <Card className="shadow-lg border-2">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-2xl">Fill Out the Form</CardTitle>
+            <CardDescription className="text-base">
+              Fields marked with <span className="text-destructive font-medium">*</span> are required
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {form.fields.map((field) => (
-                <div key={field.id} className="space-y-2">
-                  <Label htmlFor={field.id}>
-                    {field.label}
-                    {field.required && <span className="text-destructive ml-1">*</span>}
-                  </Label>
-                  {renderField(field)}
+              {form.fields.map((field, index) => (
+                <div 
+                  key={field.id} 
+                  className="space-y-3 p-5 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor={field.id} className="text-base font-medium">
+                        {field.label}
+                        {field.required && <span className="text-destructive ml-1">*</span>}
+                      </Label>
+                      {field.description && (
+                        <p className="text-sm text-muted-foreground">{field.description}</p>
+                      )}
+                      <div className="pt-1">
+                        {renderField(field)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
 
               {/* Public Response Toggle */}
               {form.listResponsesPublicly && (
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="make-public">Make my response public</Label>
+                <div className="pt-6 border-t">
+                  <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                    <div className="flex-1 space-y-1">
+                      <Label htmlFor="make-public" className="text-base font-medium cursor-pointer">
+                        Make my response public
+                      </Label>
                       <p className="text-sm text-muted-foreground">
-                        Allow others to see your response
+                        Allow others to see your response publicly
                       </p>
                     </div>
                     <Switch
                       id="make-public"
                       checked={makePublic}
                       onCheckedChange={setMakePublic}
+                      className="mt-1"
                     />
                   </div>
                 </div>
               )}
 
               {/* Submit Button */}
-              <div className="pt-4">
-                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Response"}
+              <div className="pt-6">
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full text-base font-medium h-12" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                      Submit Response
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
+
+        {/* Info Footer */}
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          <p>Your response will be recorded and may be reviewed by the form owner.</p>
+        </div>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { PartialBlock } from "@blocknote/core";
 import { toast } from "sonner";
 import { LanguageSelector } from '@/components/global/LanguageSelector';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import "@blocknote/mantine/style.css";
 
 // Dynamic import to prevent SSR issues with BlockNote
@@ -171,15 +172,30 @@ export default function DocumentPage({ params }: PageProps) {
             </div>
 
             {/* Form Link Button */}
-            <div className="py-6">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto gap-2"
-                onClick={() => router.push(`/${doc.slug}/form`)}
-              >
-                <FileText className="h-4 w-4" />
-                Submit a Response
-              </Button>
+            <div className="py-4">
+              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" />
+                        Have feedback or questions?
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Submit your response through our form
+                      </p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="shadow-md hover:shadow-lg transition-all"
+                      onClick={() => router.push(`/${doc.slug}/form`)}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Submit Response
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {doc.tags && doc.tags.length > 0 && (
