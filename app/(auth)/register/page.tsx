@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const router = useRouter();
 
   const {
@@ -51,6 +53,10 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
+
+  if (!isAuthLoading && isAuthenticated) {
+    redirect("/document")
+  }
 
   return (
     <>
