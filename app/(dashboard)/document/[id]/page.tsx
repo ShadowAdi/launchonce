@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getDocumentById, deleteDocument } from "@/actions/document.action";
@@ -50,7 +50,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -110,6 +110,13 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     initialContent: initialBlocks,
   }, [initialBlocks]);
 
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated) {
+      redirect("/document")
+    }
+  }, [isAuthLoading, isAuthenticated])
+
+
   const handleDeleteClick = () => {
     setShowDeleteDialog(true);
   };
@@ -119,7 +126,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
     setIsDeleting(true);
     setShowDeleteDialog(false);
-    
+
     try {
       const result = await deleteDocument(document.id, user.id);
 
@@ -187,7 +194,6 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sticky Header */}
       <div className="sticky top-0 z-10 border-b bg-card/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
@@ -257,13 +263,12 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Status Badge & Share Info */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${document.visibility === 'published'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
                 }`}
             >
               {document.visibility === 'published' ? <Globe className="h-3.5 w-3.5" /> : null}
@@ -355,7 +360,6 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

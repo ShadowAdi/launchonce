@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
@@ -54,9 +54,11 @@ export default function RegisterPage() {
     }
   };
 
-  if (!isAuthLoading && isAuthenticated) {
-    redirect("/document")
-  }
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated) {
+      redirect("/document")
+    }
+  }, [isAuthLoading, isAuthenticated])
 
   return (
     <>
