@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useMemo } from 'react';
 import { getDocumentBySlug } from '@/actions/document.action';
+import { getFormBySlug } from '@/actions/form.action';
 import { redirect, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Eye, FileText } from 'lucide-react';
@@ -38,6 +39,7 @@ export default function DocumentPage({ params }: PageProps) {
   const [doc, setDoc] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [hasForm, setHasForm] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,6 +54,10 @@ export default function DocumentPage({ params }: PageProps) {
 
         if (result.success && result.data) {
           setDoc(result.data);
+          
+          // Check if form exists for this document
+          const formResult = await getFormBySlug(resolvedParams.slug);
+          setHasForm(formResult.success && formResult.data?.isEnabled);
         } else {
           toast.error(!result.success ? result.error : "Failed to load document");
           router.push("/");
@@ -193,31 +199,29 @@ export default function DocumentPage({ params }: PageProps) {
         {initialBlocks && <BlockNoteEditor initialContent={initialBlocks} editable={false} />}
       </article>
 
-      <div className="py-4 w-1/2 mx-auto my-5">
-        <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Have feedback or questions?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Submit your response through our form
-                </p>
+      {hasForm && (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between gap-4 p-4 border border-border/50 rounded-lg bg-foreground/[0.02] hover:bg-foreground/[0.04] transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="h-4 w-4" />
               </div>
-              <Button
-                size="lg"
-                className="shadow-md hover:shadow-lg transition-all"
-                onClick={() => router.push(`/${doc.slug}/form`)}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Submit Response
-              </Button>
+              <div>
+                <p className="text-sm font-medium">Have feedback?</p>
+                <p className="text-xs text-muted-foreground">Share your thoughts</p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="hover:bg-foreground hover:text-background transition-colors"
+              onClick={() => router.push(`/${doc.slug}/form`)}
+            >
+              Submit
+            </Button>
+          </div>
+        </div>
+      )}
 
 
       <div className="border-t bg-muted/20 mt-20">
