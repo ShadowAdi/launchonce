@@ -165,7 +165,7 @@ export default function CreateDocumentPage() {
       if (result.success) {
         toast.success(`Document "${result.data.title}" created successfully!`);
         form.reset();
-        router.push("/");
+        router.push("/document");
       } else {
         // Check if error is related to user not found
         if (result.error?.includes("User not found") || result.error?.includes("User account not found")) {
